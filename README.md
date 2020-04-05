@@ -1,2 +1,22 @@
 # Islander
-A simple island survival game. Many things are yet to be implemented, such as the survival part.
+A simple island survival game based on OpenGL. Many things are yet to be implemented, such as the survival part.
+
+This project began as a hobby. Do not expect particularly high quality code or readable, if any, documentation.
+
+Current features:
+- Procedural terrain generation
+- Basic shading
+
+Currently in development:
+- Loading screen
+- Documentation
+
+To be implemented in the future:
+- Menu system
+- Saving islands instead of making new ones each time
+- Shadows (really need help with this one)
+- Better terrain generation
+  - Caves
+  - Plants
+
+Any help would be greatly appreciated.
