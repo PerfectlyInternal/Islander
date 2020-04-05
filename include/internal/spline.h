@@ -32,6 +32,8 @@
 #include <vector>
 #include <algorithm>
 
+#define max(a, b) a > b ? a : b
+#define min(a, b) a < b ? a : b
 
 // unnamed namespace only because the implementation is in this
 // header file and we don't want to export symbols to the obj files

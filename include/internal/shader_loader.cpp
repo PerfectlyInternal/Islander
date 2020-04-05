@@ -1,5 +1,4 @@
-#include <fstream>
-#include <sstream>
+#include <internal/shader_loader.h>
 
 // function to load shader programs, takes file paths for both text files
 GLuint load_shaders(const char* vertex_file_path, const char* fragment_file_path)
@@ -46,7 +45,7 @@ GLuint load_shaders(const char* vertex_file_path, const char* fragment_file_path
 		return 0;
 	}
 
-	//variables to store log data
+	// variables to store log data
 	GLint result = GL_FALSE;
 	int info_log_length;
 

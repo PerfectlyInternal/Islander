@@ -1,6 +1,8 @@
-#include <spline.h>
-#pragma optimize("", off)
-#define INIT_VALUE 0
+#include <internal/terrain_generation.h>
+#include <internal/spline.h>
+// won't take define from header file? fix this
+//#define max(a, b) a > b ? a : b
+//#define min(a, b) a < b ? a : b
 
 double random()
 {
@@ -231,7 +233,7 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 	threads.resize(0);
 	for (int i = 0; i < size - 1; i++)
 	{
-		threads.push_back(std::thread([](int i, int size, std::vector<std::vector<double>> map, std::vector<std::vector<glm::vec3>>& vertices, std::vector<glm::vec3>& colors, std::vector<glm::vec3>& normals, int water_level) {
+		//threads.push_back(std::thread([](int i, int size, std::vector<std::vector<double>> map, std::vector<std::vector<glm::vec3>>& vertices, std::vector<glm::vec3>& colors, std::vector<glm::vec3>& normals, int water_level) {
 			for (int j = 0; j < size - 1; j++)
 			{
 				/*
@@ -307,8 +309,8 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 				vertices[i][j + 1] = vert3;
 				vertices[i + 1][j + 1] = vert4;
 			}
-		},
-			i, size, map, std::ref(vertices), std::ref(colors), std::ref(normals), water_level)); // parameters to the function
+		//},
+		//	i, size, map, std::ref(vertices), std::ref(colors), std::ref(normals), water_level)); // parameters to the function
 		
 	}
 

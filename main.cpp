@@ -14,15 +14,16 @@
 #include <thread>
 #include <mutex>
 
-#pragma optimize("", off)
-
 #define map_size 1024
 
-#include <internal/shader_loader.cpp>
-#include <internal/terrain_generation.cpp>
+#include <internal/shader_loader.h>
+#include <internal/terrain_generation.h>
 
 #define WINDOW_WIDTH 2048
 #define WINDOW_HEIGHT 1536
+
+//#define max(a, b) a > b ? a : b
+//#define min(a, b) a < b ? a : b
 
 GLFWwindow* window;
 
@@ -31,7 +32,7 @@ void quit();
 
 bool load_model(const char * obj_path, const char * mtl_path, std::vector<glm::vec3>& out_vertices, std::vector<glm::vec3>& out_colors, std::vector<glm::vec3>& out_normals);
 
-int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) // this needs to be replaced with something cross-platform, but Visual Studio won't complile anything without this
 {
 	#ifdef _DEBUG
 		AllocConsole();
