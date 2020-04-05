@@ -3,6 +3,8 @@ A simple island survival game based on OpenGL. Many things are yet to be impleme
 
 This project began as a hobby. Do not expect particularly high quality code or readable, if any, documentation.
 
+Visit [Our contribution guidelines](https://github.com/SashaM69420/Islander/blob/master/CONTRIBUTING.md) before beginning to contribute.
+
 Current features:
 - Procedural terrain generation
 - Basic shading
