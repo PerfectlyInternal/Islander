@@ -21,7 +21,7 @@
 #include <internal/loading_screen.h>
 
 #define WINDOW_WIDTH 2048
-#define WINDOW_HEIGHT 1536
+#define WINDOW_HEIGHT 1024
 
 //#define max(a, b) a > b ? a : b
 //#define min(a, b) a < b ? a : b
