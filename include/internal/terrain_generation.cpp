@@ -146,7 +146,7 @@ void noise(int size, std::vector<std::vector<double>>& map, double amplitude, in
 
 }
 
-void generate_terrain(int size, int iterations, double amplitude, std::vector<std::vector<glm::vec3>>& vertices, std::vector<glm::vec3>& colors, std::vector<glm::vec3>& normals)
+void generate_terrain(int size, int iterations, double amplitude, std::vector<std::vector<glm::vec3>>& vertices, std::vector<glm::vec3>& colors, std::vector<glm::vec3>& normals, int& completion)
 {
 	// seed the random number generator
 	srand((unsigned int) time(0));	
@@ -173,10 +173,15 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 		threads.push_back(std::thread(noise, size, std::ref(map), pow(2, i) * amplitude, pow(2, i)));
 
 	// join the parallel threads
-	for (std::vector<std::thread>::iterator i = threads.begin(); i != threads.end(); i++) 
+	int j = 1;
+	for (std::vector<std::thread>::iterator i = threads.begin(); i != threads.end(); i++)
+	{
 		i->join();
+		completion += (j++ / threads.size()) * 45;
+	}
 
 	printf("noise generation complete in t <= %f sec\n", difftime(time(0), start_time));
+	completion = 45;
 	
 	// resize the output vector and calculate minimum and average height
 	vertices.resize(size);
@@ -194,7 +199,7 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 	avg_height /= size * size;
 
 	// island mask
-	double max_width = (size) - 10;
+	double max_width = (size / 2) - (size / 128);
 	for (int x = 0; x < size; x++)
 	{
 		for (int y = 0; y < size; y++)
@@ -226,92 +231,88 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 	printf("noise processing complete in t <= %f sec\n", difftime(time(0), step_time));
 	time(&step_time);
 	printf("terrain generation complete in t <= %f sec\n", difftime(time(0), start_time));
+	completion = 50;
 
 	// output to vector
 
 	// use one tread per row of values in order to optimize for time and resources
 	threads.resize(0);
+	vertices.resize(size);
 	for (int i = 0; i < size - 1; i++)
 	{
-		//threads.push_back(std::thread([](int i, int size, std::vector<std::vector<double>> map, std::vector<std::vector<glm::vec3>>& vertices, std::vector<glm::vec3>& colors, std::vector<glm::vec3>& normals, int water_level) {
-			for (int j = 0; j < size - 1; j++)
+		vertices[i].resize(size);
+		for (int j = 0; j < size - 1; j++)
+		{
+			/*
+			   ______
+			v1 |\   | v3
+			   | \  |
+			   |  \ |
+			v2 |___\| v4
+			*/
+
+			glm::vec3 vert1 = glm::vec3(i - size / 2, map[i][j], j - size / 2);
+			glm::vec3 vert2 = glm::vec3(i + 1 - size / 2, map[i + 1][j], j - size / 2);
+			glm::vec3 vert3 = glm::vec3(i - size / 2, map[i][j + 1], j + 1 - size / 2);
+			glm::vec3 vert4 = glm::vec3(i + 1 - size / 2, map[i + 1][j + 1], j + 1 - size / 2);
+
+			glm::vec3 u1 = vert1 - vert4;
+			glm::vec3 v1 = vert1 - vert2;
+			glm::vec3 normal1 = glm::vec3(
+				(u1.y * v1.z) - (u1.z * v1.y),
+				(u1.z * v1.x) - (u1.x * v1.z),
+				(u1.x * v1.y) - (u1.y * v1.x));
+
+			normals.push_back(normal1);
+			normals.push_back(normal1);
+			normals.push_back(normal1);
+
+			glm::vec3 u2 = vert1 - vert3;
+			glm::vec3 v2 = vert1 - vert4;
+			glm::vec3 normal2 = glm::vec3(
+				(u2.y * v2.z) - (u2.z * v2.y),
+				(u2.z * v2.x) - (u2.x * v2.z),
+				(u2.x * v2.y) - (u2.y * v2.x));
+
+			normals.push_back(normal2);
+			normals.push_back(normal2);
+			normals.push_back(normal2);
+
+			glm::vec3 grass(0.2, 1, 0.2);
+			glm::vec3 sand(0.76, 0.7, 0.5);
+
+			if (((vert1.y + vert2.y + vert4.y) / 3) - water_level < 2.5)
 			{
-				/*
-				   ______
-				v1 |\   | v3
-				   | \  |
-				   |  \ |
-				v2 |___\| v4
-				*/
-
-				glm::vec3 vert1 = glm::vec3(i - size / 2, map[i][j], j - size / 2);
-				glm::vec3 vert2 = glm::vec3(i + 1 - size / 2, map[i + 1][j], j - size / 2);
-				glm::vec3 vert3 = glm::vec3(i - size / 2, map[i][j + 1], j + 1 - size / 2);
-				glm::vec3 vert4 = glm::vec3(i + 1 - size / 2, map[i + 1][j + 1], j + 1 - size / 2);
-
-				glm::vec3 u1 = vert1 - vert4;
-				glm::vec3 v1 = vert1 - vert2;
-				glm::vec3 normal1 = glm::vec3(
-					(u1.y * v1.z) - (u1.z * v1.y),
-					(u1.z * v1.x) - (u1.x * v1.z),
-					(u1.x * v1.y) - (u1.y * v1.x));
-
-				normals.push_back(normal1);
-				normals.push_back(normal1);
-				normals.push_back(normal1);
-
-				glm::vec3 u2 = vert1 - vert3;
-				glm::vec3 v2 = vert1 - vert4;
-				glm::vec3 normal2 = glm::vec3(
-					(u2.y * v2.z) - (u2.z * v2.y),
-					(u2.z * v2.x) - (u2.x * v2.z),
-					(u2.x * v2.y) - (u2.y * v2.x));
-
-				normals.push_back(normal2);
-				normals.push_back(normal2);
-				normals.push_back(normal2);
-
-				// colors are generated based on position and normal angle
-				// sand is near the water level
-				// grass is everywhere else
-
-				glm::vec3 grass(0.2, 1, 0.2);
-				glm::vec3 sand(0.76, 0.7, 0.5);
-
-				if (((vert1.y + vert2.y + vert4.y) / 3) - water_level < 2.5)
-				{
-					colors.push_back(sand);
-					colors.push_back(sand);
-					colors.push_back(sand);
-				}
-				else
-				{
-					colors.push_back(grass);
-					colors.push_back(grass);
-					colors.push_back(grass);
-				}
-
-				if (((vert1.y + vert3.y + vert4.y) / 3) - water_level < 2.5)
-				{
-					colors.push_back(sand);
-					colors.push_back(sand);
-					colors.push_back(sand);
-				}
-				else
-				{
-					colors.push_back(grass);
-					colors.push_back(grass);
-					colors.push_back(grass);
-				}
-
-				vertices[i][j] = vert1;
-				vertices[i + 1][j] = vert2;
-				vertices[i][j + 1] = vert3;
-				vertices[i + 1][j + 1] = vert4;
+				colors.push_back(sand);
+				colors.push_back(sand);
+				colors.push_back(sand);
 			}
-		//},
-		//	i, size, map, std::ref(vertices), std::ref(colors), std::ref(normals), water_level)); // parameters to the function
-		
+			else
+			{
+				colors.push_back(grass);
+				colors.push_back(grass);
+				colors.push_back(grass);
+			}
+
+			if (((vert1.y + vert3.y + vert4.y) / 3) - water_level < 2.5)
+			{
+				colors.push_back(sand);
+				colors.push_back(sand);
+				colors.push_back(sand);
+			}
+			else
+			{
+				colors.push_back(grass);
+				colors.push_back(grass);
+				colors.push_back(grass);
+			}
+
+			vertices[i][j] = vert1;
+			vertices[i + 1][j] = vert2;
+			vertices[i][j + 1] = vert3;
+			vertices[i + 1][j + 1] = vert4;
+		}
+		completion = 50 + (i * 50 / size);
 	}
 
 	std::vector<glm::vec3> water;
@@ -344,4 +345,5 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 
 	printf("terrain output complete in t <= %f sec\n", difftime(time(0), step_time));
 	printf("total time = %f sec\n", difftime(time(0), start_time));
+	completion = 100;
 }

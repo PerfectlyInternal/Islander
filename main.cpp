@@ -18,6 +18,7 @@
 
 #include <internal/shader_loader.h>
 #include <internal/terrain_generation.h>
+#include <internal/loading_screen.h>
 
 #define WINDOW_WIDTH 2048
 #define WINDOW_HEIGHT 1536
@@ -57,7 +58,11 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	std::vector<glm::vec3> colors;
 	std::vector<glm::vec3> normals;
 
-	generate_terrain(map_size, 0, 0.35, map, colors, normals);
+	int terrain_completion = 0;
+	std::thread terrain_thread(generate_terrain, map_size, 0, 0.25, std::ref(map), std::ref(colors), std::ref(normals), std::ref(terrain_completion));
+	loading_screen(window, &terrain_completion, program_id, glm::vec3(1, 1, 1), glm::vec3(0, 1, 0), glm::vec3(0, 0, 0));
+	terrain_thread.join();
+
 	for (int x = 0; x < map_size-1; x++) 
 	{
 		for (int z = 0; z < map_size-1; z++)
