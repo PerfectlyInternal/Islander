@@ -1,0 +1,12 @@
+
+Debug/vc141.pdb
+*.obj
+*.tlog
+*.pdb
+*.ipch
+*.opendb
+*.log
+*.ilk
+*.db
+.vs/Islander/v15/.suo
+Debug/Islander.exe

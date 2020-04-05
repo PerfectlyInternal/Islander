@@ -194,7 +194,7 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 	avg_height /= size * size;
 
 	// island mask
-	double max_width = (size / 2) - 10;
+	double max_width = (size) - 10;
 	for (int x = 0; x < size; x++)
 	{
 		for (int y = 0; y < size; y++)
