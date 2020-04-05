@@ -18,5 +18,6 @@ To be implemented in the future:
 - Better terrain generation
   - Caves
   - Plants
+  - Islands that aren't boring
 
 Any help would be greatly appreciated.
