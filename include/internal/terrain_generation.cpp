@@ -1,5 +1,5 @@
 #include <internal/terrain_generation.h>
-#include <internal/spline.h>
+#include <internal/spline.h> // won't compile if this is in the header?
 // won't take define from header file? fix this
 //#define max(a, b) a > b ? a : b
 //#define min(a, b) a < b ? a : b
