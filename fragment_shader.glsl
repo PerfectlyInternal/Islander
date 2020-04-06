@@ -14,9 +14,9 @@ out vec3 color;
 
 uniform vec3 camera_pos;
 
-uniform vec3 fog_color;
-uniform float fog_start;
-uniform float fog_end;
+uniform vec3 fog_color = vec3(1, 1, 1);
+uniform float fog_start = 100.0;
+uniform float fog_end = 250.0; 
 
 void main(){
 	vec3 normal = normalize(fragment_normal);

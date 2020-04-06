@@ -224,8 +224,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			position.y = ground_pos + 5;
 			y_speed = 0;
 		}
-		else 
+		else
+		{
 			y_speed -= gravity;
+		}
 
 		projection = glm::perspective(glm::radians(initial_fov), 4.0f / 3.0f, 0.1f, 1024.0f);
 		view = glm::lookAt(position, position + direction, up);

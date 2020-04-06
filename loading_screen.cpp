@@ -8,18 +8,21 @@ void loading_screen(GLFWwindow* window, int* percentage, GLuint program_id, glm:
 	std::vector<glm::vec3> colors(6, glm::vec3());
 	std::vector<glm::vec3> normals(6, glm::vec3(1, 0, 0));
 
-	glm::mat4 projection = glm::perspective(100.0, 0.5, 0.1, 100.0);//glm::ortho(0, 100, 0, 100, 1, 100);
-	glm::mat4 view = glm::lookAt(glm::vec3(-10, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	glm::vec3 position(5, 0, 0);
+
+	glm::mat4 projection = glm::ortho(0, 100, 0, 100, 1, 100);
+	projection = glm::perspective(glm::radians(100.0f), 4.0f / 3.0f, 0.1f, 1024.0f);
+	glm::mat4 view = glm::lookAt(glm::vec3(5, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 final_matrix = projection * view * model;
 
 	vertices[0] = glm::vec3(0, 0, 0);
-	vertices[1] = glm::vec3(0, 0, *percentage);
-	vertices[2] = glm::vec3(0, 100, 0);
+	vertices[2] = glm::vec3(0, 0, *percentage);
+	vertices[1] = glm::vec3(0, 100, 0);
 	
 	vertices[3] = glm::vec3(0, 0, *percentage);
-	vertices[4] = glm::vec3(0, 100, *percentage);
-	vertices[5] = glm::vec3(0, 100, 0);
+	vertices[5] = glm::vec3(0, 100, *percentage);
+	vertices[4] = glm::vec3(0, 100, 0);
 
 	colors[0] = progress_bar;
 	colors[1] = progress_bar;
@@ -51,6 +54,8 @@ void loading_screen(GLFWwindow* window, int* percentage, GLuint program_id, glm:
 	GLuint view_id = glGetUniformLocation(program_id, "view");
 	GLuint model_id = glGetUniformLocation(program_id, "model");
 
+	GLuint camera_pos_id = glGetUniformLocation(program_id, "camera_pos");
+
 	// ambient lighting
 	glm::vec3 ambient_light_color = glm::vec3(0.2f, 0.2f, 0.2f);
 	GLuint ambient_light_id = glGetUniformLocation(program_id, "ambient_light_color");
@@ -62,20 +67,31 @@ void loading_screen(GLFWwindow* window, int* percentage, GLuint program_id, glm:
 		glfwPollEvents();
 
 		vertices[0] = glm::vec3(0, 0, 0);
-		vertices[1] = glm::vec3(0, 0, *percentage);
-		vertices[2] = glm::vec3(0, 100, 0);
+		vertices[2] = glm::vec3(0, 0, *percentage);
+		vertices[1] = glm::vec3(0, 100, 0);
 
 		vertices[3] = glm::vec3(0, 0, *percentage);
-		vertices[4] = glm::vec3(0, 100, *percentage);
-		vertices[5] = glm::vec3(0, 100, 0);
+		vertices[5] = glm::vec3(0, 100, *percentage);
+		vertices[4] = glm::vec3(0, 100, 0);
+
+		glUseProgram(program_id);
 
 		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
 		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_DYNAMIC_DRAW);
+
+		glBindBuffer(GL_ARRAY_BUFFER, color_buffer);
+		glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec3), &colors[0], GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ARRAY_BUFFER, normal_buffer);
+		glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
 
 		// send stuff to shaders
 		glUniformMatrix4fv(matrix_id, 1, GL_FALSE, &final_matrix[0][0]);
 		glUniformMatrix4fv(view_id, 1, GL_FALSE, &view[0][0]);
 		glUniformMatrix4fv(model_id, 1, GL_FALSE, &model[0][0]);	
+
+		glUniform3fv(ambient_light_id, 1, &ambient_light_color[0]);
+		glUniform3fv(camera_pos_id, 1, &position[0]);
 
 		// draw stuff
 		glEnableVertexAttribArray(0);
