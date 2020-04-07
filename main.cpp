@@ -197,7 +197,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 		// gravity and physics
 		float ground_pos;
-		if (position.x > -map_size / 2 && position.x + 1 < map_size / 2 && position.z > -map_size / 2 && position.z + 1 < map_size / 2) // this is where issue #6 occurs, in particular at positive x and z
+		if (position.x > -map_size / 2 && position.x + 1 < map_size / 2 && position.z > -map_size / 2 && position.z + 1 < map_size / 2)
 			ground_pos = (float)bilinear_interpolation(
 				map[(int)position.x + map_size / 2][(int)position.z + map_size / 2].y,
 				map[(int)position.x + map_size / 2][(int)position.z + 1 + map_size / 2].y,

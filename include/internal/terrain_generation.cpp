@@ -177,11 +177,11 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 	for (std::vector<std::thread>::iterator i = threads.begin(); i != threads.end(); i++)
 	{
 		i->join();
-		completion += (j++ / threads.size()) * 45;
+		completion += (j++ / threads.size()) * 40;
 	}
 
 	printf("noise generation complete in t <= %f sec\n", difftime(time(0), start_time));
-	completion = 45;
+	completion = 40;
 	
 	// resize the output vector and calculate minimum and average height
 	vertices.resize(size);
@@ -199,13 +199,34 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 	avg_height /= size * size;
 
 	// island mask
-	double max_width = (size / 2) - (size / 128);
+	double max_width = (size / 4);
+	int centers_x[3];
+	int centers_y[3];
+	int centers_weight[3] = { 100, 60, 60 };
+	int weight = 0;
+
+	// choose 3 random centers for the island
+	// these are the highest points
+	for (int i = 0; i < 3; i++)
+	{
+		centers_x[i] = random() * size/2;
+		centers_y[i] = random() * size/2;
+		weight += centers_weight[i];
+	}
+
 	for (int x = 0; x < size; x++)
 	{
 		for (int y = 0; y < size; y++)
 		{
-			double dist = sqrt(pow(x - size / 2, 2) + pow(y - size / 2, 2));
+			double dist = 0; 
+			for (int i = 0; i < 3; i++)
+			{
+				dist += sqrt(pow(x - centers_x[i], 2) + pow(y - centers_y[i], 2)) * centers_weight[i];
+			}
+			dist /= weight;
+
 			double factor = dist / max_width;
+
 			factor *= factor;
 
 			//map[x][y] -= avg_height - min_height;
