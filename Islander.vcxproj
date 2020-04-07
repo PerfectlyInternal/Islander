@@ -107,8 +107,10 @@
     <ClCompile Include="include\internal\shader_loader.cpp" />
     <ClCompile Include="include\internal\terrain_generation.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="loading_screen.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Header.h" />
     <ClInclude Include="include\glad\glad.h" />
     <ClInclude Include="include\glfw\glfw3.h" />
     <ClInclude Include="include\glfw\glfw3native.h" />

@@ -19,9 +19,9 @@ uniform mat4 matrix;
 uniform mat4 view;
 uniform mat4 model;
 
-uniform vec3 ambient_light_color;
-uniform vec3 directional_light_color;
-uniform vec3 directional_light_direction;
+uniform vec3 ambient_light_color = vec3(0.25, 0.25, 0.25);
+uniform vec3 directional_light_color = vec3(1, 1, 1);
+uniform vec3 directional_light_direction = vec3(1, 0, 0);
 
 void main()
 {
