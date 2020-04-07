@@ -23,3 +23,8 @@ To be implemented in the future:
   - Islands that aren't boring
 
 Any help would be greatly appreciated.
+
+Credits:
+
+- Simplex noise:
+- https://github.com/SRombauts/SimplexNoise
