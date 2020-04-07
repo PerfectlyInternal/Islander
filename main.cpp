@@ -60,7 +60,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	int terrain_completion = 0;
 	std::thread terrain_thread(generate_terrain, map_size, 0, 0.25, std::ref(map), std::ref(colors), std::ref(normals), std::ref(terrain_completion));
-	loading_screen(window, terrain_completion, program_id, glm::vec3(0.75, 0.75, 0.75), glm::vec3(0, 1, 0), glm::vec3(0, 0, 0));
+	loading_screen(window, terrain_completion, program_id, glm::vec3(0.75, 0.75, 0.75), glm::vec3(0, 1, 0), glm::vec3(0.25, 0.25, 0.25));
 	terrain_thread.join();
 
 	for (int x = 0; x < map_size-1; x++) 

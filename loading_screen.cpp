@@ -3,11 +3,13 @@
 void loading_screen(GLFWwindow* window, int& percentage, GLuint program_id, glm::vec3 background, glm::vec3 progress_bar, glm::vec3 progress_bar_border)
 {
 	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+
 	glClearColor(background.r, background.g, background.b, 1);
 
-	std::vector<glm::vec3> vertices(12, glm::vec3());
-	std::vector<glm::vec3> colors(12, glm::vec3());
-	std::vector<glm::vec3> normals(12, glm::vec3(1, 0, 0));
+	std::vector<glm::vec3> vertices(18, glm::vec3());
+	std::vector<glm::vec3> colors(18, glm::vec3());
+	std::vector<glm::vec3> normals(18, glm::vec3(1, 0, 0));
 
 	glm::vec3 position(-25, 50, 100);
 
@@ -17,29 +19,37 @@ void loading_screen(GLFWwindow* window, int& percentage, GLuint program_id, glm:
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 final_matrix = projection * view * model;
 
-	colors[0] = progress_bar;
-	colors[1] = progress_bar;
-	colors[2] = progress_bar;
+	colors[0] = progress_bar_border;
+	colors[1] = progress_bar_border;
+	colors[2] = progress_bar_border;
 
-	colors[3] = progress_bar;
-	colors[4] = progress_bar;
-	colors[5] = progress_bar;
+	colors[3] = progress_bar_border;
+	colors[4] = progress_bar_border;
+	colors[5] = progress_bar_border;
 
-	colors[6] = progress_bar_border;
-	colors[7] = progress_bar_border;
-	colors[8] = progress_bar_border;
+	colors[6] = progress_bar;
+	colors[7] = progress_bar;
+	colors[8] = progress_bar;
 
-	colors[9] = progress_bar_border;
-	colors[10] = progress_bar_border;
-	colors[11] = progress_bar_border;
+	colors[9] = progress_bar;
+	colors[10] = progress_bar;
+	colors[11] = progress_bar;
 
-	vertices[6] = glm::vec3(0, -5, -5);
-	vertices[7] = glm::vec3(0, -5, 205);
-	vertices[8] = glm::vec3(0, 105, -5);
+	colors[12] = glm::vec3(1, 0, 0);
+	colors[13] = glm::vec3(1, 0, 0);
+	colors[14] = glm::vec3(1, 0, 0);
 
-	vertices[9] = glm::vec3(0, 105, 205);
-	vertices[10] = glm::vec3(0, -5, 205);
-	vertices[11] = glm::vec3(0, 105, -5);
+	colors[15] = glm::vec3(1, 0, 0);
+	colors[16] = glm::vec3(1, 0, 0);
+	colors[17] = glm::vec3(1, 0, 0);
+
+	vertices[0] = glm::vec3(0, -5, -5);
+	vertices[1] = glm::vec3(0, -5, 205);
+	vertices[2] = glm::vec3(0, 105, -5);
+
+	vertices[3] = glm::vec3(0, 105, 205);
+	vertices[4] = glm::vec3(0, -5, 205);
+	vertices[5] = glm::vec3(0, 105, -5);
 
 	// buffers for position and color
 	GLuint vertex_buffer;
@@ -75,13 +85,21 @@ void loading_screen(GLFWwindow* window, int& percentage, GLuint program_id, glm:
 		
 		glfwPollEvents();
 
-		vertices[0] = glm::vec3(0, 0, 0);
-		vertices[2] = glm::vec3(0, 0, percentage*2);
-		vertices[1] = glm::vec3(0, 100, 0);
+		vertices[6] = glm::vec3(0, 0, 0);
+		vertices[7] = glm::vec3(0, 0, percentage*2);
+		vertices[8] = glm::vec3(0, 100, 0);
 
-		vertices[3] = glm::vec3(0, 0, percentage*2);
-		vertices[5] = glm::vec3(0, 100, percentage*2);
-		vertices[4] = glm::vec3(0, 100, 0);
+		vertices[9] = glm::vec3(0, 0, percentage*2);
+		vertices[10] = glm::vec3(0, 100, percentage*2);
+		vertices[11] = glm::vec3(0, 100, 0);
+
+		vertices[12] = glm::vec3(0, 0, percentage*2);
+		vertices[13] = glm::vec3(0, 100, percentage*2);
+		vertices[14] = glm::vec3(0, 100, 200);
+
+		vertices[15] = glm::vec3(0, 0, 200);
+		vertices[16] = glm::vec3(0, 100, 200);
+		vertices[17] = glm::vec3(0, 0, percentage*2);
 
 		glUseProgram(program_id);
 
@@ -144,4 +162,5 @@ void loading_screen(GLFWwindow* window, int& percentage, GLuint program_id, glm:
 		glfwSwapBuffers(window);
 	}
 	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
 }
