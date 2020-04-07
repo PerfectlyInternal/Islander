@@ -105,6 +105,7 @@
     <ClCompile Include="glad.c" />
     <ClCompile Include="include\glm\detail\glm.cpp" />
     <ClCompile Include="include\internal\shader_loader.cpp" />
+    <ClCompile Include="include\internal\SimplexNoise.cpp" />
     <ClCompile Include="include\internal\terrain_generation.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="loading_screen.cpp" />

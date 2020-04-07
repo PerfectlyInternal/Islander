@@ -3,9 +3,11 @@
 
 #include <time.h>
 #include <ctime>
+#include <cmath>
 #include <vector>
 #include <stdio.h>
 #include <thread>
+#include <internal/SimplexNoise.h>
 #include <glm/glm.hpp>
 
 double random();
@@ -16,8 +18,5 @@ void noise(int size, std::vector<std::vector<double>>& map, double amplitude, in
 void generate_terrain(int size, int iterations, double amplitude, std::vector<std::vector<glm::vec3>>& vertices, std::vector<glm::vec3>& colors, std::vector<glm::vec3>& normals, int& completion);
 
 #endif // !TERRAIN_GENERATION_DEF
-
-//#define max(a, b) a > b ? a : b
-//#define min(a, b) a < b ? a : b
 
 #define INIT_VALUE 0

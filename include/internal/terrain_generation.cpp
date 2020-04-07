@@ -152,8 +152,6 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 	// output map
 	std::vector<std::vector<double>> map(size, std::vector<double>(size, INIT_VALUE));
 
-	double max_height = size / 5;
-
 	// if iterations is 0, make the terrain generation run until it hits the smallest frequency
 	if (iterations == 0) iterations = size;
 	
@@ -163,76 +161,78 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 
 	// generate the map
 
-	// parallel threads to improve performance and generation speed
+	//// parallel threads to improve performance and generation speed
 	std::vector<std::thread> threads;
-	for (int i = 0; i < iterations && pow(2, i) < size / 2; i++)
-		// create one thread per layer of noise
-		//                            func,  size, map, amplitude,             frequency
-		threads.push_back(std::thread(noise, size, std::ref(map), pow(2, i) * amplitude, pow(2, i)));
+	//for (int i = 0; i < iterations && pow(2, i) < size / 2; i++)
+	//	// create one thread per layer of noise
+	//	//                            func,  size, map,           amplitude,                frequency
+	//	threads.push_back(std::thread(noise, size, std::ref(map), pow(2, i) * amplitude / i, pow(2, i)));
 
-	// join the parallel threads
-	int j = 1;
-	for (std::vector<std::thread>::iterator i = threads.begin(); i != threads.end(); i++)
+	//// join the parallel threads
+	//int j = 1;
+	//for (std::vector<std::thread>::iterator i = threads.begin(); i != threads.end(); i++)
+	//{
+	//	i->join();
+	//	completion += (j++ / threads.size()) * 40;
+	//}
+
+	SimplexNoise noise = SimplexNoise();
+	for (int x = 0; x < size; x++)
 	{
-		i->join();
-		completion += (j++ / threads.size()) * 40;
+		for (int y = 0; y < size; y++)
+		{
+			map[x][y] = (noise.fractal(iterations, (float) x / size, (float) y / size) + 1) * 50;
+			completion = (x * size + y) * 40 / (size*size);
+		}
 	}
 
 	printf("noise generation complete in t <= %f sec\n", difftime(time(0), start_time));
 	completion = 40;
 
-	// island mask
-	double max_width = (size / 2);
-	int centers_x[4];
-	int centers_y[4];
-	int centers_weight[] = { 70, 60, 50, 40 };
-	int weight = 0;
-
-	// choose 4 random centers for the island
-	// these are the highest points
-	for (int i = 0; i < 4; i++)
+	// calculate minimum height on map to ensure that all points are positive
+	double min_height = size / 2;
+	double max_height = 0;
+	for (int i = 0; i < size; i++)
 	{
-		centers_x[i] = (random() - 0.5) * size / 3;
-		centers_y[i] = (random() - 0.5) * size / 3;
-		weight += centers_weight[i];
-	}
-
-	for (int x = 0; x < size; x++)
-	{
-		for (int y = 0; y < size; y++)
+		for (int j = 0; j < size; j++)
 		{
-			double dist = 0; 
-			for (int i = 0; i < 4; i++)
-			{
-				dist += sqrt(pow(x - size/2 - centers_x[i], 2) + pow(y - size/2 - centers_y[i], 2)) * centers_weight[i];
-			}
-			dist /= weight;
-
-			double factor = dist / max_width;
-
-			factor *= factor;
-			//factor = max(0, 1 - factor) * 2;
-
-			map[x][y] *= max(0, 1 - factor);
+			min_height = min(map[i][j], min_height);
+			max_height = max(map[i][j], min_height);
 		}
 	}
+	printf("max height %f", max_height);
+
+	// island mask
+	//double max_width = size / 2;
+	//for (int x = 0; x < size; x++)
+	//{
+	//	for (int y = 0; y < size; y++)
+	//	{
+	//		double dist = sqrt(pow(x - (size / 2), 2) + pow(y - (size / 2), 2));
+	//		double factor = dist * max_height / max_width;
+
+	//		map[x][y] += min_height;
+	//		map[x][y] = max(0, map[x][y] - factor);
+	//	}
+	//}
 
 	// calculate average and minimum heights on map
 	vertices.resize(size);
 	double avg_height = 0;
-	double min_height = size;
+	min_height = size;
 	for (int i = 0; i < size; i++)
 	{
 		vertices[i].resize(size);
 		for (int j = 0; j < size; j++)
 		{
+			if (isnan(map[i][j])) map[i][j] = 0;
 			min_height = min(map[i][j], min_height);
 			avg_height += map[i][j];
 		}
 	}
 	avg_height /= size * size;
 
-	double water_level = (min_height + avg_height) / 2;
+	double water_level = avg_height;
 
 	printf("noise processing complete in t <= %f sec\n", difftime(time(0), step_time));
 	time(&step_time);
@@ -351,5 +351,6 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 
 	printf("terrain output complete in t <= %f sec\n", difftime(time(0), step_time));
 	printf("total time = %f sec\n", difftime(time(0), start_time));
+	printf("water level: %f", water_level);
 	completion = 100;
 }
