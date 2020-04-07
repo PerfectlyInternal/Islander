@@ -1,28 +1,21 @@
 #include <internal/loading_screen.h>
 
-void loading_screen(GLFWwindow* window, int* percentage, GLuint program_id, glm::vec3 background, glm::vec3 progress_bar, glm::vec3 progress_bar_border)
+void loading_screen(GLFWwindow* window, int& percentage, GLuint program_id, glm::vec3 background, glm::vec3 progress_bar, glm::vec3 progress_bar_border)
 {
+	glDisable(GL_CULL_FACE);
 	glClearColor(background.r, background.g, background.b, 1);
 
 	std::vector<glm::vec3> vertices(6, glm::vec3());
 	std::vector<glm::vec3> colors(6, glm::vec3());
 	std::vector<glm::vec3> normals(6, glm::vec3(1, 0, 0));
 
-	glm::vec3 position(5, 0, 0);
+	glm::vec3 position(-25, 50, 100);
 
-	glm::mat4 projection = glm::ortho(0, 100, 0, 100, 1, 100);
-	projection = glm::perspective(glm::radians(100.0f), 4.0f / 3.0f, 0.1f, 1024.0f);
-	glm::mat4 view = glm::lookAt(glm::vec3(5, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	glm::mat4 projection = glm::ortho(2048, 0, 1024, 0, 1, 100);
+	projection = glm::perspective(glm::radians(160.0f), 4.0f / 3.0f, 0.1f, 1024.0f);
+	glm::mat4 view = glm::lookAt(position, glm::vec3(0, position.y, position.z), glm::vec3(0, 1, 0));
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 final_matrix = projection * view * model;
-
-	vertices[0] = glm::vec3(0, 0, 0);
-	vertices[2] = glm::vec3(0, 0, *percentage);
-	vertices[1] = glm::vec3(0, 100, 0);
-	
-	vertices[3] = glm::vec3(0, 0, *percentage);
-	vertices[5] = glm::vec3(0, 100, *percentage);
-	vertices[4] = glm::vec3(0, 100, 0);
 
 	colors[0] = progress_bar;
 	colors[1] = progress_bar;
@@ -60,18 +53,18 @@ void loading_screen(GLFWwindow* window, int* percentage, GLuint program_id, glm:
 	glm::vec3 ambient_light_color = glm::vec3(0.2f, 0.2f, 0.2f);
 	GLuint ambient_light_id = glGetUniformLocation(program_id, "ambient_light_color");
 
-	while (*percentage != 100)
+	while (percentage != 100)
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		glfwPollEvents();
 
 		vertices[0] = glm::vec3(0, 0, 0);
-		vertices[2] = glm::vec3(0, 0, *percentage);
+		vertices[2] = glm::vec3(0, 0, percentage*2);
 		vertices[1] = glm::vec3(0, 100, 0);
 
-		vertices[3] = glm::vec3(0, 0, *percentage);
-		vertices[5] = glm::vec3(0, 100, *percentage);
+		vertices[3] = glm::vec3(0, 0, percentage*2);
+		vertices[5] = glm::vec3(0, 100, percentage*2);
 		vertices[4] = glm::vec3(0, 100, 0);
 
 		glUseProgram(program_id);
@@ -134,4 +127,5 @@ void loading_screen(GLFWwindow* window, int* percentage, GLuint program_id, glm:
 
 		glfwSwapBuffers(window);
 	}
+	glEnable(GL_CULL_FACE);
 }

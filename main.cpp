@@ -60,7 +60,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	int terrain_completion = 0;
 	std::thread terrain_thread(generate_terrain, map_size, 0, 0.25, std::ref(map), std::ref(colors), std::ref(normals), std::ref(terrain_completion));
-	loading_screen(window, &terrain_completion, program_id, glm::vec3(1, 1, 1), glm::vec3(0, 1, 0), glm::vec3(0, 0, 0));
+	loading_screen(window, terrain_completion, program_id, glm::vec3(0.75, 0.75, 0.75), glm::vec3(0, 1, 0), glm::vec3(0, 0, 0));
 	terrain_thread.join();
 
 	for (int x = 0; x < map_size-1; x++) 
@@ -229,7 +229,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			y_speed -= gravity;
 		}
 
-		projection = glm::perspective(glm::radians(initial_fov), 4.0f / 3.0f, 0.1f, 1024.0f);
+		projection = glm::perspective(glm::radians(initial_fov), (float)WINDOW_WIDTH/WINDOW_HEIGHT, 0.1f, 1024.0f);
 		view = glm::lookAt(position, position + direction, up);
 		model = glm::mat4(1.0f);
 		final_matrix = projection * view * model;
