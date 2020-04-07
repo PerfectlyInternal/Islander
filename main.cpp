@@ -197,7 +197,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 		// gravity and physics
 		float ground_pos;
-		if (position.x > -map_size / 2 && position.x < map_size / 2 && position.z > -map_size / 2 && position.z < map_size / 2)
+		if (position.x > -map_size / 2 && position.x + 1 < map_size / 2 && position.z > -map_size / 2 && position.z + 1 < map_size / 2) // this is where issue #6 occurs, in particular at positive x and z
 			ground_pos = (float)bilinear_interpolation(
 				map[(int)position.x + map_size / 2][(int)position.z + map_size / 2].y,
 				map[(int)position.x + map_size / 2][(int)position.z + 1 + map_size / 2].y,
@@ -211,7 +211,11 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				position.z + map_size / 2
 			);
 		else
+		{
 			ground_pos = 0;
+			printf("x = %f\n", position.x);
+			printf("z = %f\n------\n", position.z);
+		}
 
 		position.y += y_speed; 
 		if (abs(position.y - ground_pos - 5) < gravity)
@@ -463,7 +467,7 @@ bool init()
 		glfwWindowHint(GLFW_SAMPLES, 4);
 
 		// attempt to create the window
-		window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "GLFW-based 3D game", NULL, NULL);
+		window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Islander", NULL, NULL);
 		if (window != NULL)
 		{
 			glfwMakeContextCurrent(window);
