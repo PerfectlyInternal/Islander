@@ -5,9 +5,9 @@ void loading_screen(GLFWwindow* window, int& percentage, GLuint program_id, glm:
 	glDisable(GL_CULL_FACE);
 	glClearColor(background.r, background.g, background.b, 1);
 
-	std::vector<glm::vec3> vertices(6, glm::vec3());
-	std::vector<glm::vec3> colors(6, glm::vec3());
-	std::vector<glm::vec3> normals(6, glm::vec3(1, 0, 0));
+	std::vector<glm::vec3> vertices(12, glm::vec3());
+	std::vector<glm::vec3> colors(12, glm::vec3());
+	std::vector<glm::vec3> normals(12, glm::vec3(1, 0, 0));
 
 	glm::vec3 position(-25, 50, 100);
 
@@ -24,6 +24,22 @@ void loading_screen(GLFWwindow* window, int& percentage, GLuint program_id, glm:
 	colors[3] = progress_bar;
 	colors[4] = progress_bar;
 	colors[5] = progress_bar;
+
+	colors[6] = progress_bar_border;
+	colors[7] = progress_bar_border;
+	colors[8] = progress_bar_border;
+
+	colors[9] = progress_bar_border;
+	colors[10] = progress_bar_border;
+	colors[11] = progress_bar_border;
+
+	vertices[6] = glm::vec3(0, -5, -5);
+	vertices[7] = glm::vec3(0, -5, 205);
+	vertices[8] = glm::vec3(0, 105, -5);
+
+	vertices[9] = glm::vec3(0, 105, 205);
+	vertices[10] = glm::vec3(0, -5, 205);
+	vertices[11] = glm::vec3(0, 105, -5);
 
 	// buffers for position and color
 	GLuint vertex_buffer;
