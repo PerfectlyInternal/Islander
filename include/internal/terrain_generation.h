@@ -2,6 +2,7 @@
 #define TERRAIN_GENRATION_DEF
 
 #include <time.h>
+#include <ctime>
 #include <vector>
 #include <stdio.h>
 #include <thread>

@@ -211,11 +211,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				position.z + map_size / 2
 			);
 		else
-		{
 			ground_pos = 0;
-			printf("x = %f\n", position.x);
-			printf("z = %f\n------\n", position.z);
-		}
 
 		position.y += y_speed; 
 		if (abs(position.y - ground_pos - 5) < gravity)
