@@ -208,7 +208,7 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 			if (dist >= max_width - 128)
 			{
 				factor = (dist / (max_width - 128)) - 1;
-
+				 
 				map[x][y] = max(0, map[x][y] * (1 - factor * 5));
 			}
 		}
