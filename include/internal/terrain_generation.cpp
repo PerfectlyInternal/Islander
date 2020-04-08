@@ -175,7 +175,7 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 	for (std::vector<std::thread>::iterator i = threads.begin(); i != threads.end(); i++)
 	{
 		i->join();
-		completion += (j++ / threads.size()) * 40;
+		completion = (j++ / threads.size()) * 40;
 	}
 
 	printf("noise generation complete in t <= %f sec\n", difftime(time(0), start_time));
@@ -236,13 +236,11 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 	completion = 50;
 
 	// output to vector
-
-	// use one tread per row of values in order to optimize for time and resources
-	threads.resize(0);
 	vertices.resize(size);
+	vertices[0].resize(size);
 	for (int i = 0; i < size - 1; i++)
 	{
-		vertices[i].resize(size);
+		vertices[i + 1].resize(size);
 		for (int j = 0; j < size - 1; j++)
 		{
 			/*
