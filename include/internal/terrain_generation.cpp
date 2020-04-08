@@ -163,28 +163,28 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 
 	//// parallel threads to improve performance and generation speed
 	std::vector<std::thread> threads;
-	//for (int i = 0; i < iterations && pow(2, i) < size / 2; i++)
-	//	// create one thread per layer of noise
-	//	//                            func,  size, map,           amplitude,                frequency
-	//	threads.push_back(std::thread(noise, size, std::ref(map), pow(2, i) * amplitude / i, pow(2, i)));
+	for (int i = 0; i < iterations && pow(2, i) < size / 2; i++)
+		// create one thread per layer of noise
+		//                            func,  size, map,           amplitude,                frequency
+		threads.push_back(std::thread(noise, size, std::ref(map), pow(2, i) * amplitude, pow(2, i)));
 
-	//// join the parallel threads
-	//int j = 1;
-	//for (std::vector<std::thread>::iterator i = threads.begin(); i != threads.end(); i++)
-	//{
-	//	i->join();
-	//	completion += (j++ / threads.size()) * 40;
-	//}
-
-	SimplexNoise noise = SimplexNoise();
-	for (int x = 0; x < size; x++)
+	// join the parallel threads
+	int j = 1;
+	for (std::vector<std::thread>::iterator i = threads.begin(); i != threads.end(); i++)
 	{
-		for (int y = 0; y < size; y++)
-		{
-			map[x][y] = (noise.fractal(iterations, (float) x / size, (float) y / size) + 1) * 50;
-			completion = (x * size + y) * 40 / (size*size);
-		}
+		i->join();
+		completion += (j++ / threads.size()) * 40;
 	}
+
+	//SimplexNoise noise = SimplexNoise();
+	//for (int x = 0; x < size; x++)
+	//{
+	//	for (int y = 0; y < size; y++)
+	//	{
+	//		map[x][y] = (noise.fractal(iterations, (float) x / size, (float) y / size) + 1) * 50;
+	//		completion = (x * size + y) * 40 / (size*size);
+	//	}
+	//}
 
 	printf("noise generation complete in t <= %f sec\n", difftime(time(0), start_time));
 	completion = 40;
@@ -203,18 +203,25 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 	printf("max height %f", max_height);
 
 	// island mask
-	//double max_width = size / 2;
-	//for (int x = 0; x < size; x++)
-	//{
-	//	for (int y = 0; y < size; y++)
-	//	{
-	//		double dist = sqrt(pow(x - (size / 2), 2) + pow(y - (size / 2), 2));
-	//		double factor = dist * max_height / max_width;
+	double max_width = size / 2;
+	for (int x = 0; x < size; x++)
+	{
+		for (int y = 0; y < size; y++)
+		{
+			double dist = sqrt(pow(x - (size / 2), 2) + pow(y - (size / 2), 2));
+			double factor = dist * max_height / max_width;
+			 
+			map[x][y] += min_height;
+			map[x][y] = max(0, map[x][y] - factor);
 
-	//		map[x][y] += min_height;
-	//		map[x][y] = max(0, map[x][y] - factor);
-	//	}
-	//}
+			if (dist >= max_width - 32)
+			{
+				factor = (dist / (max_width - 32)) - 1;
+
+				map[x][y] *= 1 - factor;
+			}
+		}
+	}
 
 	// calculate average and minimum heights on map
 	vertices.resize(size);

@@ -7,7 +7,7 @@
 #include <vector>
 #include <stdio.h>
 #include <thread>
-#include <internal/SimplexNoise.h>
+#include <internal/PerlinNoise.hpp>
 #include <glm/glm.hpp>
 
 double random();
