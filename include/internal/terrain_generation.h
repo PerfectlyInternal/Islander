@@ -2,15 +2,11 @@
 #define TERRAIN_GENRATION_DEF
 
 #include <time.h>
-<<<<<<< HEAD
 #include <ctime>
 #include <cmath>
-=======
->>>>>>> parent of 44e4dd6... New terrain genration somewhat works, parts are cutting off at the edges though
 #include <vector>
 #include <stdio.h>
 #include <thread>
-#include <internal/PerlinNoise.hpp>
 #include <glm/glm.hpp>
 
 double random();

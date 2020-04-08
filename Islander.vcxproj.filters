@@ -33,9 +33,6 @@
     <ClCompile Include="loading_screen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="include\internal\SimplexNoise.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="spline.h">
