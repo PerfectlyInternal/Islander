@@ -205,11 +205,11 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 			map[x][y] += min_height;
 			map[x][y] = max(0, map[x][y] - factor);
 
-			if (dist >= max_width - 32)
+			if (dist >= max_width - 128)
 			{
-				factor = (dist / (max_width - 32)) - 1;
+				factor = (dist / (max_width - 128)) - 1;
 
-				map[x][y] *= 1 - factor;
+				map[x][y] = max(0, map[x][y] * (1 - factor * 5));
 			}
 		}
 	}
