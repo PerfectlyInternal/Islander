@@ -91,6 +91,8 @@ std::vector<std::vector<double>> bicubic_interpolation(std::vector<std::vector<d
 
 void noise(int size, std::vector<std::vector<double>>& map, double amplitude, int frequency)
 {
+	time_t start_time = time(0);
+
 	int s = size / frequency;
 
 	// vector of vectors of doubles to store the noise
@@ -147,7 +149,7 @@ void noise(int size, std::vector<std::vector<double>>& map, double amplitude, in
 void generate_terrain(int size, int iterations, double amplitude, std::vector<std::vector<glm::vec3>>& vertices, std::vector<glm::vec3>& colors, std::vector<glm::vec3>& normals, int& completion)
 {
 	// seed the random number generator
-	srand(time(NULL));	
+	srand((unsigned int) time(0));	
 
 	// output map
 	std::vector<std::vector<double>> map(size, std::vector<double>(size, INIT_VALUE));
@@ -188,7 +190,23 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 
 	printf("noise generation complete in t <= %f sec\n", difftime(time(0), start_time));
 	completion = 40;
+	
+	// resize the output vector and calculate minimum and average height
+	vertices.resize(size);
+	double min_height = size;
+	double avg_height = 0;
+	for (int i = 0; i < size; i++)
+	{
+		vertices[i].resize(size);
+		for (int j = 0; j < size; j++)
+		{
+			min_height = min(map[i][j], min_height);
+			avg_height += map[i][j];
+		}
+	}
+	avg_height /= size * size;
 
+<<<<<<< HEAD
 	// calculate minimum height on map to ensure that all points are positive
 	double min_height = size / 2;
 	double max_height = 0;
@@ -199,6 +217,22 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 			min_height = min(map[i][j], min_height);
 			max_height = max(map[i][j], min_height);
 		}
+=======
+	// island mask
+	double max_width = (size / 4);
+	int centers_x[3];
+	int centers_y[3];
+	int centers_weight[3] = { 100, 60, 60 };
+	int weight = 0;
+
+	// choose 3 random centers for the island
+	// these are the highest points
+	for (int i = 0; i < 3; i++)
+	{
+		centers_x[i] = random() * size/2;
+		centers_y[i] = random() * size/2;
+		weight += centers_weight[i];
+>>>>>>> parent of 44e4dd6... New terrain genration somewhat works, parts are cutting off at the edges though
 	}
 	printf("max height %f", max_height);
 
@@ -208,6 +242,7 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 	{
 		for (int y = 0; y < size; y++)
 		{
+<<<<<<< HEAD
 			double dist = sqrt(pow(x - (size / 2), 2) + pow(y - (size / 2), 2));
 			double factor = dist * max_height / max_width;
 			 
@@ -226,10 +261,29 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 	// calculate average and minimum heights on map
 	vertices.resize(size);
 	double avg_height = 0;
+=======
+			double dist = 0; 
+			for (int i = 0; i < 3; i++)
+			{
+				dist += sqrt(pow(x - centers_x[i], 2) + pow(y - centers_y[i], 2)) * centers_weight[i];
+			}
+			dist /= weight;
+
+			double factor = dist / max_width;
+
+			factor *= factor;
+
+			//map[x][y] -= avg_height - min_height;
+			map[x][y] *= max(0, 1 - factor);
+		}
+	}
+
+	// recalculate average and minimum heights on new map
+	avg_height = 0;
+>>>>>>> parent of 44e4dd6... New terrain genration somewhat works, parts are cutting off at the edges though
 	min_height = size;
 	for (int i = 0; i < size; i++)
 	{
-		vertices[i].resize(size);
 		for (int j = 0; j < size; j++)
 		{
 			if (isnan(map[i][j])) map[i][j] = 0;
@@ -248,7 +302,7 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 
 	// output to vector
 
-	// use one tread per row of values in order to optimize for time and resources (currently broken)
+	// use one tread per row of values in order to optimize for time and resources
 	threads.resize(0);
 	vertices.resize(size);
 	for (int i = 0; i < size - 1; i++)
