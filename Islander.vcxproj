@@ -102,6 +102,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="model.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="include\glm\detail\glm.cpp" />
     <ClCompile Include="include\internal\shader_loader.cpp" />
@@ -110,6 +111,7 @@
     <ClCompile Include="loading_screen.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="model.h" />
     <ClInclude Include="Header.h" />
     <ClInclude Include="include\glad\glad.h" />
     <ClInclude Include="include\glfw\glfw3.h" />
