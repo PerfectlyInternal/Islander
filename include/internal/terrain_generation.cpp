@@ -4,6 +4,7 @@
 //#define max(a, b) a > b ? a : b
 //#define min(a, b) a < b ? a : b
 
+// generate a ramdom double between 0 and 1
 double random()
 {
 	return ((double) (rand() % 1000)) / 1000.0;
@@ -315,6 +316,27 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 		completion = 50 + (i * 50 / size);
 	}
 
+	// add features such as trees and rocks
+	std::vector<glm::vec3> trees = std::vector<glm::vec3>();
+	const int tree_freq = 64;
+	for (int i = 0; i < size / tree_freq; i++)
+	{
+		for (int j = 0; j < size / tree_freq; j++) // some amount of features must be in every 16x16 square
+		{
+			int x = random() * tree_freq;
+			int z = random() * tree_freq; // randomly place the feature in the 16x16 square
+			if (map[i * tree_freq + x][j * tree_freq + z] > water_level)
+			{
+				model tree = model();
+				tree.load_model("untitled.obj", "untitled.mtl");
+				tree.translate(i * tree_freq + x - size/2, map[i * tree_freq + x][j * tree_freq + z], j * tree_freq + z - size/2);
+				tree.get_model(trees, colors, normals);
+			}
+		}
+	}
+	vertices.push_back(trees);
+
+	// add water
 	std::vector<glm::vec3> water;
 
 	water.push_back(glm::vec3(-size, water_level, -size));

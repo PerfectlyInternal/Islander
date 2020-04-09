@@ -7,6 +7,7 @@
 #include <vector>
 #include <stdio.h>
 #include <thread>
+#include <internal/model.h>
 #include <glm/glm.hpp>
 
 double random();

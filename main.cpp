@@ -76,8 +76,9 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		}
 	}
 
-	for (int i = 0; i < 6; i++)
-		vertices.push_back(map[map_size][i]);
+	for (int i = map_size; i < map.size(); i++)
+		for (std::vector<glm::vec3>::iterator j = map[i].begin(); j != map[i].end(); j++)
+			vertices.push_back(*j);
 
 	// buffers for position and color
 	GLuint vertex_buffer;
@@ -150,12 +151,6 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	const float gravity = 5.0f;
 	const float max_fall_speed = 5.0f;
 	float y_speed = 0;
-
-	// loat a test model
-	model test = model();
-	test.load_model("untitled.obj", "untitled.mtl");
-	test.translate(0, 125, 0);
-	test.get_model(vertices, colors, normals);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_DYNAMIC_DRAW);
