@@ -27,13 +27,13 @@
     <ClCompile Include="include\internal\terrain_generation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="glad.c">
+    <ClCompile Include="include\internal\loading_screen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="loading_screen.cpp">
+    <ClCompile Include="include\internal\model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="model.cpp">
+    <ClCompile Include="include\internal\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

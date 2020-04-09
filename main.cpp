@@ -32,8 +32,6 @@ GLFWwindow* window;
 bool init();
 void quit();
 
-bool load_model(const char * obj_path, const char * mtl_path, std::vector<glm::vec3>& out_vertices, std::vector<glm::vec3>& out_colors, std::vector<glm::vec3>& out_normals);
-
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) // this needs to be replaced with something cross-platform, but Visual Studio won't complile anything without this
 {
 	#ifdef _DEBUG
@@ -81,8 +79,6 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	for (int i = 0; i < 6; i++)
 		vertices.push_back(map[map_size][i]);
 
-	int vertex_count = vertices.size();
-
 	// buffers for position and color
 	GLuint vertex_buffer;
 	GLuint color_buffer;
@@ -110,9 +106,9 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	const float mouse_speed = 0.5f;
 
 	// matricies
-	glm::mat4 projection;
-	glm::mat4 view;
-	glm::mat4 model;
+	glm::mat4 projection_matrix;
+	glm::mat4 view_matrix;
+	glm::mat4 model_matrix;
 	glm::mat4 final_matrix;
 
 	// handle for the matrices in the shaders
@@ -137,7 +133,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// fog variables
 	float fog_start = 256;
 	float fog_end = 512;
-	glm::vec3 fog_color(0.529, 0.808, 0.922);
+	glm::vec3 base_fog_color(0.529, 0.808, 0.922);
+	glm::vec3 fog_color = sun_brightness * base_fog_color;
 
 	// uniform variables to pass to shaders
 	GLuint camera_pos_id = glGetUniformLocation(program_id, "camera_pos");
@@ -150,9 +147,24 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	double last_time = current_time;
 
 	// physics variables
-	const float gravity = 0.1f;
+	const float gravity = 5.0f;
 	const float max_fall_speed = 5.0f;
 	float y_speed = 0;
+
+	// loat a test model
+	model test = model();
+	test.load_model("untitled.obj", "untitled.mtl");
+	test.translate(0, 125, 0);
+	test.get_model(vertices, colors, normals);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_DYNAMIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, color_buffer);
+	glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(glm::vec3), &colors[0], GL_DYNAMIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, normal_buffer);
+	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_DYNAMIC_DRAW);
 
 	// main loop 
 	while (!glfwWindowShouldClose(window))
@@ -215,7 +227,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			ground_pos = 0;
 
 		position.y += y_speed; 
-		if (abs(position.y - ground_pos - 5) < gravity)
+		if (abs(position.y - ground_pos - 5) < gravity * delta_time)
 			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 				y_speed = 2;
 			else
@@ -227,22 +239,25 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		}
 		else
 		{
-			y_speed -= gravity;
+			y_speed -= gravity * delta_time;
+			printf("%f\n", position.y);
 		}
 
-		projection = glm::perspective(glm::radians(initial_fov), (float)WINDOW_WIDTH/WINDOW_HEIGHT, 0.1f, 1024.0f);
-		view = glm::lookAt(position, position + direction, up);
-		model = glm::mat4(1.0f);
-		final_matrix = projection * view * model;
+		projection_matrix = glm::perspective(glm::radians(initial_fov), (float)WINDOW_WIDTH/WINDOW_HEIGHT, 0.1f, 1024.0f);
+		view_matrix = glm::lookAt(position, position + direction, up);
+		model_matrix = glm::mat4(1.0f);
+		final_matrix = projection_matrix * view_matrix * model_matrix;
 
+		fog_color = sun_brightness * base_fog_color;
+		glClearColor(fog_color.r, fog_color.g, fog_color.b, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		glUseProgram(program_id);
 
 		// send stuff to shaders
 		glUniformMatrix4fv(matrix_id, 1, GL_FALSE, &final_matrix[0][0]);
-		glUniformMatrix4fv(view_id, 1, GL_FALSE, &view[0][0]);
-		glUniformMatrix4fv(model_id, 1, GL_FALSE, &model[0][0]);
+		glUniformMatrix4fv(view_id, 1, GL_FALSE, &view_matrix[0][0]);
+		glUniformMatrix4fv(model_id, 1, GL_FALSE, &model_matrix[0][0]);
 
 		glUniform3fv(ambient_light_id, 1, &ambient_light_color[0]);
 		glUniform3fv(directional_light_color_id, 1, &directional_light_color[0]);
@@ -286,7 +301,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			(void*)0 // offset from start
 		);
 
-		glDrawArrays(GL_TRIANGLES, 0, vertex_count);
+		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);

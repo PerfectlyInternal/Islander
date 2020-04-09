@@ -102,13 +102,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="model.cpp" />
-    <ClCompile Include="glad.c" />
+    <ClCompile Include="include\internal\glad.c" />
+    <ClCompile Include="include\internal\loading_screen.cpp" />
     <ClCompile Include="include\glm\detail\glm.cpp" />
+    <ClCompile Include="include\internal\model.cpp" />
     <ClCompile Include="include\internal\shader_loader.cpp" />
     <ClCompile Include="include\internal\terrain_generation.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="loading_screen.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="model.h" />

@@ -1,4 +1,4 @@
-#include "model.h"
+#include <internal/model.h>
 
 model::model()
 {
@@ -160,3 +160,12 @@ void model::translate(double x, double y, double z)
 	}
 }
 
+void model::get_model(std::vector<glm::vec3>& out_verts, std::vector<glm::vec3>& out_colors, std::vector<glm::vec3>& out_normals)
+{
+	out_verts.reserve(out_verts.size() + vertices.size());
+	out_colors.reserve(out_colors.size() + colors.size());
+	out_normals.reserve(out_normals.size() + normals.size());
+	out_verts.insert(out_verts.end(), vertices.begin(), vertices.end());
+	out_colors.insert(out_colors.end(), colors.begin(), colors.end());
+	out_normals.insert(out_normals.end(), normals.begin(), normals.end());
+}
