@@ -328,7 +328,7 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 			if (map[i * tree_freq + x][j * tree_freq + z] > water_level)
 			{
 				model tree = model();
-				tree.load_model("untitled.obj", "untitled.mtl");
+				tree.load_model("tree.obj", "tree.mtl");
 				tree.translate(i * tree_freq + x - size/2, map[i * tree_freq + x][j * tree_freq + z], j * tree_freq + z - size/2);
 				tree.get_model(trees, colors, normals);
 			}
