@@ -8,18 +8,18 @@ Visit [Our contribution guidelines](https://github.com/SashaM69420/Islander/blob
 Current features:
 - Procedural terrain generation
 - Basic shading
+- Loading screen
 
 Currently in development:
-- Loading screen
 - Documentation
+- Better terrain generation
+  - Caves
+  - Plants
+  - Islands that aren't boring
 
 To be implemented in the future:
 - Menu system
 - Saving islands instead of making new ones each time
 - Shadows (really need help with this one)
-- Better terrain generation
-  - Caves
-  - Plants
-  - Islands that aren't boring
 
 Any help would be greatly appreciated.
