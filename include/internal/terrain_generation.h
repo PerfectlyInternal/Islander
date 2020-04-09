@@ -7,6 +7,7 @@
 #include <vector>
 #include <stdio.h>
 #include <thread>
+#include <random>
 #include <internal/model.h>
 #include <glm/glm.hpp>
 

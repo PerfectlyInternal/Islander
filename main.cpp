@@ -99,8 +99,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// movement variables
 	glm::vec3 position = glm::vec3(0, map_size, 0);
-	float h_angle = 3.14f; // radians
-	float v_angle = 0.0f;
+	double h_angle = 3.14; // radians
+	double  v_angle = 0.0;
 	const float initial_fov = 90.0f;
 
 	const float speed = 100.0f;
@@ -235,7 +235,6 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		else
 		{
 			y_speed -= gravity * delta_time;
-			printf("%f\n", position.y);
 		}
 
 		projection_matrix = glm::perspective(glm::radians(initial_fov), (float)WINDOW_WIDTH/WINDOW_HEIGHT, 0.1f, 1024.0f);

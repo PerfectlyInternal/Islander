@@ -5,9 +5,10 @@
 //#define min(a, b) a < b ? a : b
 
 // generate a ramdom double between 0 and 1
-double random()
-{
-	return ((double) (rand() % 1000)) / 1000.0;
+double random() {
+	static thread_local std::mt19937 generator = std::mt19937(time(0));
+	std::uniform_real_distribution<double> distribution(0.0, 1.0);
+	return distribution(generator);
 }
 
 int round_down(int n, int m)
@@ -92,8 +93,6 @@ std::vector<std::vector<double>> bicubic_interpolation(std::vector<std::vector<d
 
 void noise(int size, std::vector<std::vector<double>>& map, double amplitude, int frequency)
 {
-	time_t start_time = time(0);
-
 	int s = size / frequency;
 
 	// vector of vectors of doubles to store the noise
@@ -150,7 +149,7 @@ void noise(int size, std::vector<std::vector<double>>& map, double amplitude, in
 void generate_terrain(int size, int iterations, double amplitude, std::vector<std::vector<glm::vec3>>& vertices, std::vector<glm::vec3>& colors, std::vector<glm::vec3>& normals, int& completion)
 {
 	// seed the random number generator
-	srand((unsigned int) time(0));	
+	//srand(time(NULL));	
 
 	// output map
 	std::vector<std::vector<double>> map(size, std::vector<double>(size, INIT_VALUE));
@@ -195,7 +194,7 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 	}
 
 	// island mask
-	double max_width = size / 2;
+	double max_width = size / 3;
 	for (int x = 0; x < size; x++)
 	{
 		for (int y = 0; y < size; y++)
@@ -204,14 +203,14 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 			double factor = dist * max_height / max_width;
 			 
 			map[x][y] += min_height;
-			map[x][y] = max(0, map[x][y] - factor);
+			map[x][y] = max(0, map[x][y] + factor);
 
-			if (dist >= max_width - 128)
+			/*if (dist >= max_width - 128)
 			{
 				factor = (dist / (max_width - 128)) - 1;
 				 
 				map[x][y] = max(0, map[x][y] * (1 - factor * 5));
-			}
+			}*/
 		}
 	}
 
