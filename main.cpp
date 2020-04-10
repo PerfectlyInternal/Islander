@@ -4,7 +4,6 @@
 #include <GLFW/glfw3.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <cstdlib>
 #include <string>
 #include <Windows.h>
 #include <vector>
@@ -58,6 +57,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	GLuint solid_color_program_id = load_shaders("shaders/solid_color_vertex_shader.glsl", "shaders/solid_color_fragment_shader.glsl");
 	GLuint texture_program_id = load_shaders("shaders/texture_vertex_shader.glsl", "shaders/texture_fragment_shader.glsl");
 
+	GLuint texture = load_bmp("textures/mandelbrot_set.bmp");
+
 	GLuint vertex_array_id;
 	glGenVertexArrays(1, &vertex_array_id);
 	glBindVertexArray(vertex_array_id);
@@ -66,15 +67,18 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	std::vector<std::vector<glm::vec3>> map;
 	std::vector<glm::vec3> colors;
 	std::vector<glm::vec3> normals;
+	std::vector<glm::vec2> uvs;
 
 	// buffers for position and color
 	GLuint vertex_buffer;
 	GLuint color_buffer;
 	GLuint normal_buffer;
+	GLuint uv_buffer;
 
 	glGenBuffers(1, &vertex_buffer);
 	glGenBuffers(1, &color_buffer);
 	glGenBuffers(1, &normal_buffer);
+	glGenBuffers(1, &uv_buffer);
 
 	// movement variables
 	glm::vec3 position = glm::vec3(0, map_size, 0);
@@ -95,6 +99,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	GLuint matrix_id = glGetUniformLocation(solid_color_program_id, "matrix");
 	GLuint view_id = glGetUniformLocation(solid_color_program_id, "view");
 	GLuint model_id = glGetUniformLocation(solid_color_program_id, "model");
+
+	GLuint texture_matrix_id = glGetUniformLocation(texture_program_id, "matrix");
 
 	// ambient lighting
 	glm::vec3 ambient_light_color = glm::vec3(0.2f, 0.2f, 0.2f);
@@ -145,11 +151,70 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		Right now it automatically starts world gen.
 		*/
 		case MAIN_MENU:
+			glfwPollEvents();
+			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+				game_state = GENERATING_TERRAIN;
 
+			glDisable(GL_CULL_FACE);
 
-			game_state = GENERATING_TERRAIN;
+			projection_matrix = glm::perspective(glm::radians(100.0f), (float)WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 1024.0f);
+			view_matrix = glm::lookAt(glm::vec3(10, 10, 10), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+			model_matrix = glm::mat4(1.0f);
+			final_matrix = projection_matrix * view_matrix * model_matrix;
+
+			vertices.resize(0);
+			vertices.push_back(glm::vec3(0, 0, 0));
+			vertices.push_back(glm::vec3(0, 0, 1));
+			vertices.push_back(glm::vec3(0, 1, 0));
+
+			vertices.push_back(glm::vec3(0, 1, 1));
+			vertices.push_back(glm::vec3(0, 1, 0));
+			vertices.push_back(glm::vec3(0, 0, 1));
+
+			uvs.resize(0);
+			uvs.push_back(glm::vec2(0, 0));
+			uvs.push_back(glm::vec2(0, 1));
+			uvs.push_back(glm::vec2(1, 0));
+
+			uvs.push_back(glm::vec2(1, 1));
+			uvs.push_back(glm::vec2(1, 0));
+			uvs.push_back(glm::vec2(0, 1));
+
+			glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_DYNAMIC_DRAW);
+
+			glBindBuffer(GL_ARRAY_BUFFER, uv_buffer);
+			glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_DYNAMIC_DRAW);
+
+			glClearColor(0.75, 0.75, 0.75, 1);
+			glClear(GL_COLOR_BUFFER_BIT);
+
+			glUseProgram(texture_program_id);
+
+			glUniformMatrix4fv(texture_matrix_id, 1, GL_FALSE, &final_matrix[0][0]);
+
+			glEnableVertexAttribArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+			glEnableVertexAttribArray(1);
+			glBindBuffer(GL_ARRAY_BUFFER, uv_buffer);
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+			glBindTexture(GL_TEXTURE_2D, texture);
+
+			glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+			glDisableVertexAttribArray(0);
+			glDisableVertexAttribArray(1);
+
+			glfwSwapBuffers(window);
 			break;
 
+		/*
+		Terrain is being generated
+		Unlike the rest of the cases, where the program constantly loops through them, this section only runs once at a time
+		All updates happen inside the loading_screen() function
+		*/
 		case GENERATING_TERRAIN:
 			{
 				int terrain_completion = 0;
@@ -296,36 +361,15 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 			glEnableVertexAttribArray(0);
 			glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-			glVertexAttribPointer(
-				0, // attribute No 0
-				3, // size
-				GL_FLOAT, // type
-				GL_FALSE, // is it normalized?
-				0, // gap between groups of data
-				(void*)0 // offset from start
-			);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
 			glEnableVertexAttribArray(1);
 			glBindBuffer(GL_ARRAY_BUFFER, color_buffer);
-			glVertexAttribPointer(
-				1, // attribute No 0
-				3, // size
-				GL_FLOAT, // type
-				GL_FALSE, // is it normalized?
-				0, // gap between groups of data
-				(void*)0 // offset from start
-			);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
 			glEnableVertexAttribArray(2);
 			glBindBuffer(GL_ARRAY_BUFFER, normal_buffer);
-			glVertexAttribPointer(
-				2, // attribute No 0
-				3, // size
-				GL_FLOAT, // type
-				GL_FALSE, // is it normalized?
-				0, // gap between groups of data
-				(void*)0 // offset from start
-			);
+			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
 			glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 			glDisableVertexAttribArray(0);
@@ -333,7 +377,6 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			glDisableVertexAttribArray(2);
 
 			glfwSwapBuffers(window);
-
 			break;
 
 		case PAUSED:

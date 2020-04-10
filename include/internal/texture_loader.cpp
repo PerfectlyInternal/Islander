@@ -12,7 +12,6 @@ GLuint load_bmp(const char* image_path)
 	unsigned int data_pos; // the position where the data begins in the bmp file
 	unsigned int width, height; // width and height of the image
 	unsigned int image_size; // the size of the image, in bytes
-	unsigned char* data; // RGB image data
 
 	FILE * file = fopen(image_path, "rb");
 	if (!file) printf("Could not open bmp file %s\n", image_path);
@@ -42,6 +41,7 @@ GLuint load_bmp(const char* image_path)
 	if (data_pos == 0) data_pos = 54; // assume data begins at the end of the header
 
 	// read the image data
+	unsigned char* data = (unsigned char*) malloc(image_size); // manually allocate the required amount of memory for the data
 	fread(data, 1, image_size, file);
 
 	// close the file now that we're done reading it
