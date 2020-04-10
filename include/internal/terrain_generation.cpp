@@ -4,9 +4,12 @@
 //#define max(a, b) a > b ? a : b
 //#define min(a, b) a < b ? a : b
 
-double random()
+// generate a ramdom double between 0 and 1
+double random() 
 {
-	return ((double) (rand() % 1000)) / 1000.0;
+	static thread_local std::mt19937 generator = std::mt19937(time(0));
+	std::uniform_real_distribution<double> distribution(0.0, 1.0);
+	return distribution(generator);
 }
 
 int round_down(int n, int m)
@@ -91,8 +94,6 @@ std::vector<std::vector<double>> bicubic_interpolation(std::vector<std::vector<d
 
 void noise(int size, std::vector<std::vector<double>>& map, double amplitude, int frequency)
 {
-	time_t start_time = time(0);
-
 	int s = size / frequency;
 
 	// vector of vectors of doubles to store the noise
@@ -110,7 +111,7 @@ void noise(int size, std::vector<std::vector<double>>& map, double amplitude, in
 	// interpolation
 	if (frequency != 1)
 	{
-		if (frequency <= pow(2, log2(size)/3))
+		if (frequency <= 4)
 		{
 			// bilinear interpolation for high frequencies (faster but less accurate)
 			std::vector<std::vector<double>> t(size, std::vector<double>(size, INIT_VALUE));
@@ -149,12 +150,10 @@ void noise(int size, std::vector<std::vector<double>>& map, double amplitude, in
 void generate_terrain(int size, int iterations, double amplitude, std::vector<std::vector<glm::vec3>>& vertices, std::vector<glm::vec3>& colors, std::vector<glm::vec3>& normals, int& completion)
 {
 	// seed the random number generator
-	srand((unsigned int) time(0));	
+	//srand(time(NULL));	
 
 	// output map
 	std::vector<std::vector<double>> map(size, std::vector<double>(size, INIT_VALUE));
-
-	double max_height = size / 5;
 
 	// if iterations is 0, make the terrain generation run until it hits the smallest frequency
 	if (iterations == 0) iterations = size;
@@ -169,7 +168,7 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 	std::vector<std::thread> threads;
 	for (int i = 0; i < iterations && pow(2, i) < size / 2; i++)
 		// create one thread per layer of noise
-		//                            func,  size, map, amplitude,             frequency
+		//                            func,  size, map,           amplitude,                frequency
 		threads.push_back(std::thread(noise, size, std::ref(map), pow(2, i) * amplitude, pow(2, i)));
 
 	// join the parallel threads
@@ -177,56 +176,65 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 	for (std::vector<std::thread>::iterator i = threads.begin(); i != threads.end(); i++)
 	{
 		i->join();
-		completion += (j++ / threads.size()) * 45;
+		completion = (j++ / threads.size()) * 40;
 	}
 
 	printf("noise generation complete in t <= %f sec\n", difftime(time(0), start_time));
-	completion = 45;
-	
-	// resize the output vector and calculate minimum and average height
-	vertices.resize(size);
-	double min_height = size;
-	double avg_height = 0;
+	completion = 40;
+
+	// calculate minimum height on map to ensure that all points are positive
+	double min_height = size / 2;
+	double max_height = 0;
 	for (int i = 0; i < size; i++)
 	{
-		vertices[i].resize(size);
 		for (int j = 0; j < size; j++)
 		{
 			min_height = min(map[i][j], min_height);
-			avg_height += map[i][j];
+			max_height = max(map[i][j], max_height);
 		}
 	}
-	avg_height /= size * size;
+
+	for (int i = 0; i < size; i++)
+	{
+		for (int j = 0; j < size; j++)
+		{
+			map[i][j] += min_height;
+			max_height = max(map[i][j], max_height);
+		}
+	}
 
 	// island mask
-	double max_width = (size / 2) - (size / 128);
+	double max_width = size / 2;
+	double min_width = size / 8;
 	for (int x = 0; x < size; x++)
 	{
 		for (int y = 0; y < size; y++)
 		{
-			double dist = sqrt(pow(x - size / 2, 2) + pow(y - size / 2, 2));
-			double factor = dist / max_width;
-			factor *= factor;
-
-			//map[x][y] -= avg_height - min_height;
-			map[x][y] *= max(0, 1 - factor);
+			double x_dist = size / 2 - x;
+			double y_dist = size / 2 - y;
+			double dist = max(0, sqrt((x_dist * x_dist) + (y_dist * y_dist)) - min_width);
+			double factor = dist * max_height / (max_width - min_width);
+			 
+			map[x][y] = map[x][y] - factor / 2; 
 		}
 	}
 
 	// recalculate average and minimum heights on new map
-	avg_height = 0;
+	double avg_height = 0;
 	min_height = size;
+	max_height = 0;
 	for (int i = 0; i < size; i++)
 	{
 		for (int j = 0; j < size; j++)
 		{
 			min_height = min(map[i][j], min_height);
+			max_height = max(map[i][j], max_height);
 			avg_height += map[i][j];
 		}
 	}
 	avg_height /= size * size;
 
-	double water_level = (min_height + avg_height) / 2;
+	double water_level = (avg_height * 2 + max_height) / 3;
 
 	printf("noise processing complete in t <= %f sec\n", difftime(time(0), step_time));
 	time(&step_time);
@@ -234,13 +242,11 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 	completion = 50;
 
 	// output to vector
-
-	// use one tread per row of values in order to optimize for time and resources
-	threads.resize(0);
 	vertices.resize(size);
+	vertices[0].resize(size);
 	for (int i = 0; i < size - 1; i++)
 	{
-		vertices[i].resize(size);
+		vertices[i + 1].resize(size);
 		for (int j = 0; j < size - 1; j++)
 		{
 			/*
@@ -315,6 +321,27 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 		completion = 50 + (i * 50 / size);
 	}
 
+	// add features such as trees and rocks
+	std::vector<glm::vec3> trees = std::vector<glm::vec3>();
+	const int tree_freq = 64;
+	for (int i = 0; i < size / tree_freq; i++)
+	{
+		for (int j = 0; j < size / tree_freq; j++) // some amount of features must be in every 16x16 square
+		{
+			int x = random() * tree_freq;
+			int z = random() * tree_freq; // randomly place the feature in the 16x16 square
+			if (map[i * tree_freq + x][j * tree_freq + z] > water_level)
+			{
+				model tree = model();
+				tree.load_model("tree.obj", "tree.mtl");
+				tree.translate(i * tree_freq + x - size/2, map[i * tree_freq + x][j * tree_freq + z], j * tree_freq + z - size/2);
+				tree.get_model(trees, colors, normals);
+			}
+		}
+	}
+	vertices.push_back(trees);
+
+	// add water
 	std::vector<glm::vec3> water;
 
 	water.push_back(glm::vec3(-size, water_level, -size));
@@ -345,5 +372,6 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 
 	printf("terrain output complete in t <= %f sec\n", difftime(time(0), step_time));
 	printf("total time = %f sec\n", difftime(time(0), start_time));
+	printf("water level: %f", water_level);
 	completion = 100;
 }

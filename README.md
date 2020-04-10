@@ -23,3 +23,8 @@ To be implemented in the future:
 - Shadows (really need help with this one)
 
 Any help would be greatly appreciated.
+
+Credits:
+
+- Simplex noise:
+- https://github.com/SRombauts/SimplexNoise
