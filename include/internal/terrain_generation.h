@@ -11,7 +11,6 @@
 #include <internal/model.h>
 #include <glm/glm.hpp>
 
-double random();
 int round_down(int n, int m);
 double bilinear_interpolation(double v1, double v2, double v3, double v4, double x1, double x2, double y1, double y2, double x, double y);
 std::vector<std::vector<double>> bicubic_interpolation(std::vector<std::vector<double>> h, int gap);

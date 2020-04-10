@@ -23,7 +23,6 @@ bool model::load_model(const char * obj_path, const char * mtl_path)
 
 	FILE * file;
 
-	printf("loading object file %s ...\n", obj_path);
 	fopen_s(&file, obj_path, "r");
 	if (file == NULL)
 	{
@@ -38,7 +37,6 @@ bool model::load_model(const char * obj_path, const char * mtl_path)
 		int res = fscanf_s(file, "%s", line_header, 128);
 		if (res == EOF)
 		{
-			printf("EOF found\n");
 			break;
 		}
 		if (strcmp(line_header, "v") == 0)
@@ -82,11 +80,9 @@ bool model::load_model(const char * obj_path, const char * mtl_path)
 		{
 			// using a new material/color
 			color_index++;
-			printf("new material found in obj file");
 		}
 	}
 
-	printf("processing object file data...\n");
 	// process data
 	for (unsigned int i = 0; i < vertex_indices.size(); i++)
 	{
@@ -102,7 +98,6 @@ bool model::load_model(const char * obj_path, const char * mtl_path)
 	}
 
 	// read the mtl file
-	printf("done loading object file %s\nloading mtl file %s\n", obj_path, mtl_path);
 	fopen_s(&file, mtl_path, "r");
 	color_index = -1;
 	if (file == NULL)
@@ -118,24 +113,19 @@ bool model::load_model(const char * obj_path, const char * mtl_path)
 		int res = fscanf_s(file, "%s", line_header, 128);
 		if (res == EOF)
 		{
-			printf("EOF found\n");
 			break;
 		}
 		if (strcmp(line_header, "newmtl") == 0)
 		{
 			color_index++;
-			printf("color index: %i\n", color_index);
 		}
 		else if (strcmp(line_header, "Kd") == 0)
 		{
 			glm::vec3 color;
 			fscanf_s(file, "%f %f %f", &color.x, &color.y, &color.z);
 			temp_colors.push_back(color);
-			printf("color data read from mtl. R: %f G: %f B: %f\n", color.x, color.y, color.z);
 		}
 	}
-
-	printf("processing mtl data..\n");
 
 	// process data
 	for (unsigned int i = 0; i < color_indices.size(); i++)
@@ -144,8 +134,6 @@ bool model::load_model(const char * obj_path, const char * mtl_path)
 		glm::vec3 color = temp_colors[color_index];
 		colors.push_back(color);
 	}
-
-	printf("done loading mtl file %s\n", mtl_path);
 
 	return true;
 }

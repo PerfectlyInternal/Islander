@@ -5,7 +5,8 @@
 //#define min(a, b) a < b ? a : b
 
 // generate a ramdom double between 0 and 1
-double random() {
+double random() 
+{
 	static thread_local std::mt19937 generator = std::mt19937(time(0));
 	std::uniform_real_distribution<double> distribution(0.0, 1.0);
 	return distribution(generator);
@@ -110,7 +111,7 @@ void noise(int size, std::vector<std::vector<double>>& map, double amplitude, in
 	// interpolation
 	if (frequency != 1)
 	{
-		if (frequency <= pow(2, log2(size)/3))
+		if (frequency <= 4)
 		{
 			// bilinear interpolation for high frequencies (faster but less accurate)
 			std::vector<std::vector<double>> t(size, std::vector<double>(size, INIT_VALUE));
@@ -163,7 +164,7 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 
 	// generate the map
 
-	//// parallel threads to improve performance and generation speed
+	// parallel threads to improve performance and generation speed
 	std::vector<std::thread> threads;
 	for (int i = 0; i < iterations && pow(2, i) < size / 2; i++)
 		// create one thread per layer of noise
@@ -189,46 +190,51 @@ void generate_terrain(int size, int iterations, double amplitude, std::vector<st
 		for (int j = 0; j < size; j++)
 		{
 			min_height = min(map[i][j], min_height);
-			max_height = max(map[i][j], min_height);
+			max_height = max(map[i][j], max_height);
+		}
+	}
+
+	for (int i = 0; i < size; i++)
+	{
+		for (int j = 0; j < size; j++)
+		{
+			map[i][j] += min_height;
+			max_height = max(map[i][j], max_height);
 		}
 	}
 
 	// island mask
-	double max_width = size / 3;
+	double max_width = size / 2;
+	double min_width = size / 8;
 	for (int x = 0; x < size; x++)
 	{
 		for (int y = 0; y < size; y++)
 		{
-			double dist = sqrt(pow(x - (size / 2), 2) + pow(y - (size / 2), 2));
-			double factor = dist * max_height / max_width;
+			double x_dist = size / 2 - x;
+			double y_dist = size / 2 - y;
+			double dist = max(0, sqrt((x_dist * x_dist) + (y_dist * y_dist)) - min_width);
+			double factor = dist * max_height / (max_width - min_width);
 			 
-			map[x][y] += min_height;
-			map[x][y] = max(0, map[x][y] + factor);
-
-			/*if (dist >= max_width - 128)
-			{
-				factor = (dist / (max_width - 128)) - 1;
-				 
-				map[x][y] = max(0, map[x][y] * (1 - factor * 5));
-			}*/
+			map[x][y] = map[x][y] - factor / 2; 
 		}
 	}
 
 	// recalculate average and minimum heights on new map
 	double avg_height = 0;
 	min_height = size;
+	max_height = 0;
 	for (int i = 0; i < size; i++)
 	{
 		for (int j = 0; j < size; j++)
 		{
-			if (isnan(map[i][j])) map[i][j] = 0;
 			min_height = min(map[i][j], min_height);
+			max_height = max(map[i][j], max_height);
 			avg_height += map[i][j];
 		}
 	}
 	avg_height /= size * size;
 
-	double water_level = avg_height;
+	double water_level = (avg_height * 2 + max_height) / 3;
 
 	printf("noise processing complete in t <= %f sec\n", difftime(time(0), step_time));
 	time(&step_time);

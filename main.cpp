@@ -14,7 +14,7 @@
 #include <thread>
 #include <mutex>
 
-#define map_size 1024
+#define map_size 1536
 
 #include <internal/shader_loader.h>
 #include <internal/terrain_generation.h>
@@ -235,6 +235,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		else
 		{
 			y_speed -= gravity * delta_time;
+			printf("%f, %f\n", position.x, position.z);
 		}
 
 		projection_matrix = glm::perspective(glm::radians(initial_fov), (float)WINDOW_WIDTH/WINDOW_HEIGHT, 0.1f, 1024.0f);
