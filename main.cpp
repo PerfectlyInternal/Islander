@@ -20,6 +20,7 @@
 #include <internal/terrain_generation.h>
 #include <internal/loading_screen.h>
 #include <internal/model.h>
+#include <internal/texture_loader.h>
 
 #define WINDOW_WIDTH 2048
 #define WINDOW_HEIGHT 1024
@@ -51,7 +52,11 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		return 1;
 	}
 
-	GLuint program_id = load_shaders("shaders/vertex_shader.glsl", "shaders/fragment_shader.glsl");
+	// two different shader programs
+	// one for solid colors, used to render the game world
+	// another for textures, mostly text and GUIs
+	GLuint solid_color_program_id = load_shaders("shaders/solid_color_vertex_shader.glsl", "shaders/solid_color_fragment_shader.glsl");
+	GLuint texture_program_id = load_shaders("shaders/texture_vertex_shader.glsl", "shaders/texture_fragment_shader.glsl");
 
 	GLuint vertex_array_id;
 	glGenVertexArrays(1, &vertex_array_id);
@@ -87,13 +92,13 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	glm::mat4 final_matrix;
 
 	// handle for the matrices in the shaders
-	GLuint matrix_id = glGetUniformLocation(program_id, "matrix");
-	GLuint view_id = glGetUniformLocation(program_id, "view");
-	GLuint model_id = glGetUniformLocation(program_id, "model");
+	GLuint matrix_id = glGetUniformLocation(solid_color_program_id, "matrix");
+	GLuint view_id = glGetUniformLocation(solid_color_program_id, "view");
+	GLuint model_id = glGetUniformLocation(solid_color_program_id, "model");
 
 	// ambient lighting
 	glm::vec3 ambient_light_color = glm::vec3(0.2f, 0.2f, 0.2f);
-	GLuint ambient_light_id = glGetUniformLocation(program_id, "ambient_light_color");
+	GLuint ambient_light_id = glGetUniformLocation(solid_color_program_id, "ambient_light_color");
 
 	// sun variables
 	float sun_angle = 45;
@@ -101,8 +106,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	float sun_brightness = sin(glm::radians(sun_angle));
 	glm::vec3 directional_light_color = glm::vec3(0.9f * sun_brightness/2.5, 0.9f * sun_brightness, 0.9f * sun_brightness);
 	glm::vec3 directional_light_direction = glm::vec3(0.0f, 0.0f, 0.0f);
-	GLuint directional_light_color_id = glGetUniformLocation(program_id, "directional_light_color");
-	GLuint directional_light_direction_id = glGetUniformLocation(program_id, "directional_light_direction");
+	GLuint directional_light_color_id = glGetUniformLocation(solid_color_program_id, "directional_light_color");
+	GLuint directional_light_direction_id = glGetUniformLocation(solid_color_program_id, "directional_light_direction");
 	glClearColor(sun_brightness * 0.529, sun_brightness * 0.808, sun_brightness * 0.922, 1);
 
 	// fog variables
@@ -112,10 +117,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	glm::vec3 fog_color = sun_brightness * base_fog_color;
 
 	// uniform variables to pass to shaders
-	GLuint camera_pos_id = glGetUniformLocation(program_id, "camera_pos");
-	GLuint fog_start_id = glGetUniformLocation(program_id, "fog_start");
-	GLuint fog_end_id = glGetUniformLocation(program_id, "fog_end");
-	GLuint fog_color_id = glGetUniformLocation(program_id, "fog_color");
+	GLuint camera_pos_id = glGetUniformLocation(solid_color_program_id, "camera_pos");
+	GLuint fog_start_id = glGetUniformLocation(solid_color_program_id, "fog_start");
+	GLuint fog_end_id = glGetUniformLocation(solid_color_program_id, "fog_end");
+	GLuint fog_color_id = glGetUniformLocation(solid_color_program_id, "fog_color");
 
 	// delta_time calculation variables
 	double current_time = glfwGetTime();
@@ -149,7 +154,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			{
 				int terrain_completion = 0;
 				std::thread terrain_thread = std::thread(generate_terrain, map_size, 0, 0.25, std::ref(map), std::ref(colors), std::ref(normals), std::ref(terrain_completion));
-				loading_screen(window, terrain_completion, program_id, glm::vec3(0.75, 0.75, 0.75), glm::vec3(0, 1, 0), glm::vec3(0.25, 0.25, 0.25));
+				loading_screen(window, terrain_completion, solid_color_program_id, glm::vec3(0.75, 0.75, 0.75), glm::vec3(0, 1, 0), glm::vec3(0.25, 0.25, 0.25));
 				terrain_thread.join();
 			}
 			vertices.resize(0);
@@ -273,7 +278,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			glClearColor(fog_color.r, fog_color.g, fog_color.b, 1);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			glUseProgram(program_id);
+			glUseProgram(solid_color_program_id);
 
 			// send stuff to shaders
 			glUniformMatrix4fv(matrix_id, 1, GL_FALSE, &final_matrix[0][0]);
