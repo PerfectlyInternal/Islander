@@ -108,6 +108,7 @@
     <ClCompile Include="include\internal\model.cpp" />
     <ClCompile Include="include\internal\shader_loader.cpp" />
     <ClCompile Include="include\internal\terrain_generation.cpp" />
+    <ClCompile Include="include\internal\texture_loader.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>

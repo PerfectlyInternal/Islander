@@ -51,7 +51,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		return 1;
 	}
 
-	GLuint program_id = load_shaders("vertex_shader.glsl", "fragment_shader.glsl");
+	GLuint program_id = load_shaders("shaders/vertex_shader.glsl", "shaders/fragment_shader.glsl");
 
 	GLuint vertex_array_id;
 	glGenVertexArrays(1, &vertex_array_id);
@@ -120,6 +120,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// delta_time calculation variables
 	double current_time = glfwGetTime();
 	double last_time = current_time;
+	float delta_time;
 
 	// physics variables
 	const float gravity = 5.0f;
@@ -127,8 +128,6 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	float y_speed = 0;
 
 	GAME_STATES game_state = MAIN_MENU;
-
-	float delta_time;
 
 	// main loop 
 	while (!glfwWindowShouldClose(window))
@@ -138,8 +137,11 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		/*
 		Player is currently looking at the main menu.
 		This will later handle things like starting world generation and loading from file
+		Right now it automatically starts world gen.
 		*/
 		case MAIN_MENU:
+
+
 			game_state = GENERATING_TERRAIN;
 			break;
 
@@ -150,7 +152,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				loading_screen(window, terrain_completion, program_id, glm::vec3(0.75, 0.75, 0.75), glm::vec3(0, 1, 0), glm::vec3(0.25, 0.25, 0.25));
 				terrain_thread.join();
 			}
-
+			vertices.resize(0);
 			for (int x = 0; x < map_size - 1; x++)
 			{
 				for (int z = 0; z < map_size - 1; z++)
@@ -180,6 +182,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 			game_state = IN_GAME;
 			break;
+
 		/*
 		Player is currently in game
 		This section handles all in-game events, such as input and interaction
@@ -187,7 +190,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		case IN_GAME:
 			// calculate deltatime
 			current_time = glfwGetTime();
-			delta_time = float(current_time - last_time);
+			delta_time = current_time - last_time;
 			last_time = current_time;
 
 			// handle mouse movement
