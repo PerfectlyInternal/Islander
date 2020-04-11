@@ -57,7 +57,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	GLuint solid_color_program_id = load_shaders("shaders/solid_color_vertex_shader.glsl", "shaders/solid_color_fragment_shader.glsl");
 	GLuint texture_program_id = load_shaders("shaders/texture_vertex_shader.glsl", "shaders/texture_fragment_shader.glsl");
 
-	GLuint texture = load_bmp("textures/mandelbrot_set.bmp");
+	GLuint texture = load_bmp("textures/test.bmp");
+	GLuint texture_sampler_id = glGetUniformLocation(texture_program_id, "texture_sampler");
 
 	GLuint vertex_array_id;
 	glGenVertexArrays(1, &vertex_array_id);
@@ -81,7 +82,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	glGenBuffers(1, &uv_buffer);
 
 	// movement variables
-	glm::vec3 position = glm::vec3(0, map_size, 0);
+	glm::vec3 position = glm::vec3(0, 0, 0);
 	double h_angle = 3.14; // radians
 	double  v_angle = 0.0;
 	const float initial_fov = 90.0f;
@@ -153,32 +154,40 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		case MAIN_MENU:
 			glfwPollEvents();
 			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+			{
+				position = glm::vec3(0, map_size, 0);
+
+				glEnable(GL_CULL_FACE);
+				glDisable(GL_TEXTURE_2D);
+
 				game_state = GENERATING_TERRAIN;
+			}
 
 			glDisable(GL_CULL_FACE);
+			glEnable(GL_TEXTURE_2D);
 
 			projection_matrix = glm::perspective(glm::radians(100.0f), (float)WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 1024.0f);
-			view_matrix = glm::lookAt(glm::vec3(10, 10, 10), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+			view_matrix = glm::lookAt(glm::vec3(1, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 			model_matrix = glm::mat4(1.0f);
 			final_matrix = projection_matrix * view_matrix * model_matrix;
 
 			vertices.resize(0);
-			vertices.push_back(glm::vec3(0, 0, 0));
-			vertices.push_back(glm::vec3(0, 0, 1));
-			vertices.push_back(glm::vec3(0, 1, 0));
+			vertices.push_back(glm::vec3(0, -1, -1));
+			vertices.push_back(glm::vec3(0, -1, 1));
+			vertices.push_back(glm::vec3(0, 1, -1));
 
 			vertices.push_back(glm::vec3(0, 1, 1));
-			vertices.push_back(glm::vec3(0, 1, 0));
-			vertices.push_back(glm::vec3(0, 0, 1));
+			vertices.push_back(glm::vec3(0, 1, -1));
+			vertices.push_back(glm::vec3(0, -1, 1));
 
 			uvs.resize(0);
+			uvs.push_back(glm::vec2(1, 0));
 			uvs.push_back(glm::vec2(0, 0));
-			uvs.push_back(glm::vec2(0, 1));
-			uvs.push_back(glm::vec2(1, 0));
-
 			uvs.push_back(glm::vec2(1, 1));
-			uvs.push_back(glm::vec2(1, 0));
+
 			uvs.push_back(glm::vec2(0, 1));
+			uvs.push_back(glm::vec2(1, 1));
+			uvs.push_back(glm::vec2(0, 0));
 
 			glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
 			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_DYNAMIC_DRAW);
@@ -187,11 +196,15 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_DYNAMIC_DRAW);
 
 			glClearColor(0.75, 0.75, 0.75, 1);
-			glClear(GL_COLOR_BUFFER_BIT);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			glUseProgram(texture_program_id);
 
 			glUniformMatrix4fv(texture_matrix_id, 1, GL_FALSE, &final_matrix[0][0]);
+
+			glBindTexture(GL_TEXTURE_2D, texture);
+			glActiveTexture(GL_TEXTURE0);
+			glUniform1i(texture_sampler_id, 0);
 
 			glEnableVertexAttribArray(0);
 			glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
@@ -201,9 +214,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			glBindBuffer(GL_ARRAY_BUFFER, uv_buffer);
 			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
-			glBindTexture(GL_TEXTURE_2D, texture);
-
-			glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+			glDrawArrays(GL_TRIANGLES, 0, 6);
 			glDisableVertexAttribArray(0);
 			glDisableVertexAttribArray(1);
 
