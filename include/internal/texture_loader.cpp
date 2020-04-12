@@ -72,7 +72,8 @@ GLuint load_bmp(const char* image_path)
 
 /*
 GLI-based image loader
-Takes a DDS file as input, returns a GLuint reference to a texture
+Takes a DDS file as input
+Returns a GLuint reference to a texture
 Use the Compressonator to make DDS files
 */
 

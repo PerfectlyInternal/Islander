@@ -9,7 +9,6 @@
 #include <thread>
 #include <mutex>
 
-#include <SOIL/SOIL.h>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -59,7 +58,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	GLuint solid_color_program_id = load_shaders("shaders/solid_color_vertex_shader.glsl", "shaders/solid_color_fragment_shader.glsl");
 	GLuint texture_program_id = load_shaders("shaders/texture_vertex_shader.glsl", "shaders/texture_fragment_shader.glsl");
 
-	GLuint main_menu = SOIL_load_OGL_texture("textures/test.bmp", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_INVERT_Y);
+	GLuint main_menu = load_dds("textures/main_menu.DDS");
 	GLuint texture_sampler_id = glGetUniformLocation(texture_program_id, "texture_sampler");
 
 	GLuint vertex_array_id;
@@ -183,13 +182,13 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			vertices.push_back(glm::vec3(0, -1, 1));
 
 			uvs.resize(0);
-			uvs.push_back(glm::vec2(1, 0));
-			uvs.push_back(glm::vec2(0, 0));
 			uvs.push_back(glm::vec2(1, 1));
-
 			uvs.push_back(glm::vec2(0, 1));
-			uvs.push_back(glm::vec2(1, 1));
+			uvs.push_back(glm::vec2(1, 0));
+
 			uvs.push_back(glm::vec2(0, 0));
+			uvs.push_back(glm::vec2(1, 0));
+			uvs.push_back(glm::vec2(0, 1));
 
 			glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
 			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_DYNAMIC_DRAW);
