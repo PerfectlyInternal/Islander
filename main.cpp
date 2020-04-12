@@ -1,7 +1,3 @@
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <GLFW/glfw3.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -13,7 +9,11 @@
 #include <thread>
 #include <mutex>
 
-#define map_size 1536
+#include <SOIL/SOIL.h>
+#include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <GLFW/glfw3.h>
 
 #include <internal/shader_loader.h>
 #include <internal/terrain_generation.h>
@@ -24,7 +24,9 @@
 #define WINDOW_WIDTH 2048
 #define WINDOW_HEIGHT 1024
 
-typedef enum GAME_STATES
+#define map_size 1536
+
+enum GAME_STATES
 {
 	MAIN_MENU,
 	GENERATING_TERRAIN,
@@ -57,7 +59,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	GLuint solid_color_program_id = load_shaders("shaders/solid_color_vertex_shader.glsl", "shaders/solid_color_fragment_shader.glsl");
 	GLuint texture_program_id = load_shaders("shaders/texture_vertex_shader.glsl", "shaders/texture_fragment_shader.glsl");
 
-	GLuint main_menu = load_bmp("textures/test.bmp");
+	GLuint main_menu = SOIL_load_OGL_texture("textures/test.bmp", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_INVERT_Y);
 	GLuint texture_sampler_id = glGetUniformLocation(texture_program_id, "texture_sampler");
 
 	GLuint vertex_array_id;

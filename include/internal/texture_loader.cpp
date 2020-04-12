@@ -5,7 +5,6 @@ Custom function to load a texture from a .bmp (bitmap) file
 Takes the file path as a parameter
 Returns a GLuint that the texture can be referenced by OpenGL functions
 This function is extremely dependent on the formatting of the bmp file, making it very difficult to use
-Use SOIL functions instead
 */
 GLuint load_bmp(const char* image_path)
 {
@@ -69,4 +68,102 @@ GLuint load_bmp(const char* image_path)
 	delete data;
 
 	return texture_id;
+}
+
+/*
+GLI-based image loader
+Takes a DDS file as input, returns a GLuint reference to a texture
+Use the Compressonator to make DDS files
+*/
+
+#define FOURCC_DXT1 0x31545844 // Equivalent to "DXT1" in ASCII
+#define FOURCC_DXT3 0x33545844 // Equivalent to "DXT3" in ASCII
+#define FOURCC_DXT5 0x35545844 // Equivalent to "DXT5" in ASCII
+
+GLuint load_dds(const char * imagepath) {
+
+	unsigned char header[124];
+
+	FILE *file;
+
+	/* try to open the file */
+	file = fopen(imagepath, "rb");
+	if (file == NULL) {
+		printf("%s could not be opened. Are you in the right directory ? Don't forget to read the FAQ !\n", imagepath); getchar();
+		return 0;
+	}
+
+	/* verify the type of file */
+	char filecode[4];
+	fread(filecode, 1, 4, file);
+	if (strncmp(filecode, "DDS ", 4) != 0) {
+		fclose(file);
+		return 0;
+	}
+
+	/* get the surface desc */
+	fread(&header, 124, 1, file);
+
+	unsigned int height = *(unsigned int*)&(header[8]);
+	unsigned int width = *(unsigned int*)&(header[12]);
+	unsigned int linear_size = *(unsigned int*)&(header[16]);
+	unsigned int mipmap_count = *(unsigned int*)&(header[24]);
+	unsigned int fourCC = *(unsigned int*)&(header[80]);
+
+	unsigned char * buffer;
+	unsigned int bufsize;
+	/* how big is it going to be including all mipmaps? */
+	bufsize = mipmap_count > 1 ? linear_size * 2 : linear_size;
+	buffer = (unsigned char*)malloc(bufsize * sizeof(unsigned char));
+	fread(buffer, 1, bufsize, file);
+	/* close the file pointer */
+	fclose(file);
+
+	unsigned int components = (fourCC == FOURCC_DXT1) ? 3 : 4;
+	unsigned int format;
+	switch (fourCC)
+	{
+	case FOURCC_DXT1:
+		format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+		break;
+	case FOURCC_DXT3:
+		format = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+		break;
+	case FOURCC_DXT5:
+		format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+		break;
+	default:
+		free(buffer);
+		return 0;
+	}
+
+	// Create one OpenGL texture
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+
+	// "Bind" the newly created texture : all future texture functions will modify this texture
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	unsigned int blockSize = (format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT) ? 8 : 16;
+	unsigned int offset = 0;
+
+	/* load the mipmaps */
+	for (unsigned int level = 0; level < mipmap_count && (width || height); ++level)
+	{
+		unsigned int size = ((width + 3) / 4)*((height + 3) / 4)*blockSize;
+		glCompressedTexImage2D(GL_TEXTURE_2D, level, format, width, height,	0, size, buffer + offset);
+
+		offset += size;
+		width /= 2;
+		height /= 2;
+
+		// Deal with Non-Power-Of-Two textures.
+		if (width < 1) width = 1;
+		if (height < 1) height = 1;
+	}
+
+	free(buffer);
+
+	return textureID;
 }
