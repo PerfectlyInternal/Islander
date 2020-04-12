@@ -431,7 +431,7 @@ bool init()
 			glfwMakeContextCurrent(window);
 
 			// attemt to load advanced OpenGL functions using GLAD
-			if (gladLoadGL())
+			if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 			{
 				// enable Vsync
 				glfwSwapInterval(1);
