@@ -57,7 +57,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	GLuint solid_color_program_id = load_shaders("shaders/solid_color_vertex_shader.glsl", "shaders/solid_color_fragment_shader.glsl");
 	GLuint texture_program_id = load_shaders("shaders/texture_vertex_shader.glsl", "shaders/texture_fragment_shader.glsl");
 
-	GLuint texture = load_bmp("textures/test.bmp");
+	GLuint main_menu = load_bmp("textures/test.bmp");
 	GLuint texture_sampler_id = glGetUniformLocation(texture_program_id, "texture_sampler");
 
 	GLuint vertex_array_id;
@@ -202,7 +202,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 			glUniformMatrix4fv(texture_matrix_id, 1, GL_FALSE, &final_matrix[0][0]);
 
-			glBindTexture(GL_TEXTURE_2D, texture);
+			glBindTexture(GL_TEXTURE_2D, main_menu);
 			glActiveTexture(GL_TEXTURE0);
 			glUniform1i(texture_sampler_id, 0);
 
