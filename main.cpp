@@ -19,6 +19,7 @@
 #include <internal/loading_screen.h>
 #include <internal/model.h>
 #include <internal/texture_loader.h>
+#include <internal/text_renderer.h>
 
 #define WINDOW_WIDTH 2048
 #define WINDOW_HEIGHT 1024
@@ -56,10 +57,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// one for solid colors, used to render the game world
 	// another for textures, mostly text and GUIs
 	GLuint solid_color_program_id = load_shaders("shaders/solid_color_vertex_shader.glsl", "shaders/solid_color_fragment_shader.glsl");
-	GLuint texture_program_id = load_shaders("shaders/texture_vertex_shader.glsl", "shaders/texture_fragment_shader.glsl");
+	GLuint gui_program_id = load_shaders("shaders/gui_vertex_shader.glsl", "shaders/gui_fragment_shader.glsl");
 
-	GLuint main_menu = load_dds("textures/main_menu.DDS");
-	GLuint texture_sampler_id = glGetUniformLocation(texture_program_id, "texture_sampler");
+	GLuint font = load_dds("textures/font.DDS");
+	GLuint texture_sampler_id = glGetUniformLocation(gui_program_id, "texture_sampler");
 
 	GLuint vertex_array_id;
 	glGenVertexArrays(1, &vertex_array_id);
@@ -102,7 +103,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	GLuint view_id = glGetUniformLocation(solid_color_program_id, "view");
 	GLuint model_id = glGetUniformLocation(solid_color_program_id, "model");
 
-	GLuint texture_matrix_id = glGetUniformLocation(texture_program_id, "matrix");
+	GLuint texture_matrix_id = glGetUniformLocation(gui_program_id, "matrix");
 
 	// ambient lighting
 	glm::vec3 ambient_light_color = glm::vec3(0.2f, 0.2f, 0.2f);
@@ -110,13 +111,13 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	// sun variables
 	float sun_angle = 45;
-	const float sun_speed = 0.1;
+	const float sun_speed = 0.1f;
 	float sun_brightness = sin(glm::radians(sun_angle));
 	glm::vec3 directional_light_color = glm::vec3(0.9f * sun_brightness/2.5, 0.9f * sun_brightness, 0.9f * sun_brightness);
 	glm::vec3 directional_light_direction = glm::vec3(0.0f, 0.0f, 0.0f);
 	GLuint directional_light_color_id = glGetUniformLocation(solid_color_program_id, "directional_light_color");
 	GLuint directional_light_direction_id = glGetUniformLocation(solid_color_program_id, "directional_light_direction");
-	glClearColor(sun_brightness * 0.529, sun_brightness * 0.808, sun_brightness * 0.922, 1);
+	glClearColor(sun_brightness * 0.529f, sun_brightness * 0.808f, sun_brightness * 0.922f, 1);
 
 	// fog variables
 	float fog_start = 256;
@@ -158,74 +159,22 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			{
 				position = glm::vec3(0, map_size, 0);
 
-				glEnable(GL_CULL_FACE);
-				glDisable(GL_TEXTURE_2D);
-
 				game_state = GENERATING_TERRAIN;
 			}
-
-			glDisable(GL_CULL_FACE);
-			glEnable(GL_TEXTURE_2D);
-
-			projection_matrix = glm::perspective(glm::radians(100.0f), (float)WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 1024.0f);
-			view_matrix = glm::lookAt(glm::vec3(1, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-			model_matrix = glm::mat4(1.0f);
-			final_matrix = projection_matrix * view_matrix * model_matrix;
-
-			vertices.resize(0);
-			vertices.push_back(glm::vec3(0, -1, -1));
-			vertices.push_back(glm::vec3(0, -1, 1));
-			vertices.push_back(glm::vec3(0, 1, -1));
-
-			vertices.push_back(glm::vec3(0, 1, 1));
-			vertices.push_back(glm::vec3(0, 1, -1));
-			vertices.push_back(glm::vec3(0, -1, 1));
-
-			uvs.resize(0);
-			uvs.push_back(glm::vec2(1, 1));
-			uvs.push_back(glm::vec2(0, 1));
-			uvs.push_back(glm::vec2(1, 0));
-
-			uvs.push_back(glm::vec2(0, 0));
-			uvs.push_back(glm::vec2(1, 0));
-			uvs.push_back(glm::vec2(0, 1));
-
-			glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_DYNAMIC_DRAW);
-
-			glBindBuffer(GL_ARRAY_BUFFER, uv_buffer);
-			glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_DYNAMIC_DRAW);
 
 			glClearColor(0.75, 0.75, 0.75, 1);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			glUseProgram(texture_program_id);
-
-			glUniformMatrix4fv(texture_matrix_id, 1, GL_FALSE, &final_matrix[0][0]);
-
-			glBindTexture(GL_TEXTURE_2D, main_menu);
-			glActiveTexture(GL_TEXTURE0);
-			glUniform1i(texture_sampler_id, 0);
-
-			glEnableVertexAttribArray(0);
-			glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-			glEnableVertexAttribArray(1);
-			glBindBuffer(GL_ARRAY_BUFFER, uv_buffer);
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			glDisableVertexAttribArray(0);
-			glDisableVertexAttribArray(1);
+			render_text(window, vertex_buffer, uv_buffer, font, gui_program_id, 32, 32, 32, 32, 64, 64, "Play!");
 
 			glfwSwapBuffers(window);
+
 			break;
 
 		/*
 		Terrain is being generated
-		Unlike the rest of the cases, where the program constantly loops through them, this section only runs once at a time
-		All updates happen inside the loading_screen() function
+		Unlike the rest of the cases, where the program constantly loops through them, this section only runs once, then immediately switches to another game state
+		All on-screen updates happen inside the loading_screen() function
 		*/
 		case GENERATING_TERRAIN:
 			{
@@ -411,6 +360,11 @@ void error_callback(int error, const char* description)
 	fprintf(stderr, "Error: %s\n", description);
 }
 
+void GLAPIENTRY message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+	fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n", (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
+}
+
 bool init()
 {
 	// make GLFW call error_callback() whenever ther's an error
@@ -444,6 +398,9 @@ bool init()
 				glFrontFace(GL_CCW);
 
 				glEnable(GL_MULTISAMPLE);
+
+				glEnable(GL_DEBUG_OUTPUT);
+				glDebugMessageCallback(message_callback, 0);
 
 				return true;
 			}
