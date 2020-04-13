@@ -20,6 +20,7 @@
 #include <internal/model.h>
 #include <internal/texture_loader.h>
 #include <internal/text_renderer.h>
+#include <internal/Window.h>
 
 #define WINDOW_WIDTH 2048
 #define WINDOW_HEIGHT 1024
@@ -34,7 +35,8 @@ enum GAME_STATES
 	PAUSED
 };
 
-GLFWwindow* window;
+GLFWwindow* w;
+Window window;
 
 bool init();
 void quit();
@@ -144,7 +146,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	GAME_STATES game_state = MAIN_MENU;
 
 	// main loop 
-	while (!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(w))
 	{	
 		switch (game_state)
 		{
@@ -155,7 +157,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		*/
 		case MAIN_MENU:
 			glfwPollEvents();
-			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+			if (glfwGetMouseButton(w, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 			{
 				position = glm::vec3(0, map_size, 0);
 
@@ -165,9 +167,9 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			glClearColor(0.75, 0.75, 0.75, 1);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			render_text(window, vertex_buffer, uv_buffer, font, gui_program_id, 32, 32, 256, 512, 256, 256, "Play!");
+			render_text(w, vertex_buffer, uv_buffer, font, gui_program_id, 32, 32, 256, 512, 256, 256, "Play!");
 
-			glfwSwapBuffers(window);
+			glfwSwapBuffers(w);
 
 			break;
 
@@ -180,7 +182,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			{
 				int terrain_completion = 0;
 				std::thread terrain_thread = std::thread(generate_terrain, map_size, 0, 0.25, std::ref(map), std::ref(colors), std::ref(normals), std::ref(terrain_completion));
-				loading_screen(window, terrain_completion, solid_color_program_id, glm::vec3(0.75, 0.75, 0.75), glm::vec3(0, 1, 0), glm::vec3(0.25, 0.25, 0.25));
+				loading_screen(w, terrain_completion, solid_color_program_id, glm::vec3(0.75, 0.75, 0.75), glm::vec3(0, 1, 0), glm::vec3(0.25, 0.25, 0.25));
 				terrain_thread.join();
 			}
 			vertices.resize(0);
@@ -226,8 +228,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 			// handle mouse movement
 			double xpos, ypos;
-			glfwGetCursorPos(window, &xpos, &ypos);
-			glfwSetCursorPos(window, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
+			glfwGetCursorPos(w, &xpos, &ypos);
+			glfwSetCursorPos(w, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
 
 			h_angle += mouse_speed * delta_time * float(WINDOW_WIDTH / 2 - xpos);
 			v_angle += mouse_speed * delta_time * float(WINDOW_HEIGHT / 2 - ypos);
@@ -253,12 +255,12 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 			// handle keyboard input
 			glfwPollEvents();
-			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) position += forward * delta_time * speed; // move forward
-			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) position -= forward * delta_time * speed; // move backward
-			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) position -= right * delta_time * speed;   // move left
-			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) position += right * delta_time * speed;   // move right
+			if (glfwGetKey(w, GLFW_KEY_W) == GLFW_PRESS) position += forward * delta_time * speed; // move forward
+			if (glfwGetKey(w, GLFW_KEY_S) == GLFW_PRESS) position -= forward * delta_time * speed; // move backward
+			if (glfwGetKey(w, GLFW_KEY_A) == GLFW_PRESS) position -= right * delta_time * speed;   // move left
+			if (glfwGetKey(w, GLFW_KEY_D) == GLFW_PRESS) position += right * delta_time * speed;   // move right
 
-			if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) game_state = PAUSED; // pause the game
+			if (glfwGetKey(w, GLFW_KEY_ESCAPE) == GLFW_PRESS) game_state = PAUSED; // pause the game
 
 			// gravity and physics
 			float ground_pos;
@@ -280,7 +282,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 			position.y += y_speed;
 			if (abs(position.y - ground_pos - 5) < gravity * delta_time)
-				if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+				if (glfwGetKey(w, GLFW_KEY_SPACE) == GLFW_PRESS)
 					y_speed = 2;
 				else
 					y_speed = 0;
@@ -337,11 +339,11 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			glDisableVertexAttribArray(1);
 			glDisableVertexAttribArray(2);
 
-			glfwSwapBuffers(window);
+			glfwSwapBuffers(w);
 			break;
 
 		case PAUSED:
-			glfwSetWindowShouldClose(window, true);
+			glfwSetWindowShouldClose(w, true);
 			break;
 
 		// This shouldn't happen
@@ -380,25 +382,17 @@ bool init()
 		glfwWindowHint(GLFW_SAMPLES, 4);
 
 		// attempt to create the window
-		window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Islander", NULL, NULL);
-		if (window != NULL)
+		w = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Islander", NULL, NULL);
+		if (w != NULL)
 		{
-			glfwMakeContextCurrent(window);
+			glfwMakeContextCurrent(w);
 
 			// attemt to load advanced OpenGL functions using GLAD
 			if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 			{
-				// enable Vsync
-				glfwSwapInterval(1);
+				window = Window(w, "shaders/solid_color_vertex_shader.glsl", "shaders/solid_color_fragment_shader.glsl", "shaders/gui_vertex_shader.glsl", "shaders/gui_fragment_shader.glsl", "textures/font.dds");
 
-				glEnable(GL_DEPTH_TEST);
-				glDepthFunc(GL_LESS);
-
-				glEnable(GL_CULL_FACE);
-				glFrontFace(GL_CCW);
-
-				glEnable(GL_MULTISAMPLE);
-
+				// enable debug and set the debug callback
 				glEnable(GL_DEBUG_OUTPUT);
 				glDebugMessageCallback(message_callback, 0);
 
@@ -411,6 +405,6 @@ bool init()
 
 void quit()
 {
-	glfwDestroyWindow(window);
+	glfwDestroyWindow(w);
 	glfwTerminate();
 }

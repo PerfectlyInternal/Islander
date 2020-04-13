@@ -124,6 +124,7 @@
     <ClCompile Include="include\internal\terrain_generation.cpp" />
     <ClCompile Include="include\internal\texture_loader.cpp" />
     <ClCompile Include="include\internal\text_renderer.cpp" />
+    <ClCompile Include="include\internal\Window.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -378,6 +379,7 @@
     <ClInclude Include="include\glm\vector_relational.hpp" />
     <ClInclude Include="include\khr\khrplatform.h" />
     <ClInclude Include="spline.h" />
+    <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="include\glm\detail\func_common.inl" />

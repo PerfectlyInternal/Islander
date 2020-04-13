@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <vector>
+#include <stdio.h>
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -14,13 +15,7 @@
 /*
 This is a wrapper class to handle window-related things, mostly rendering
 All OpenGL-related stuff is handled inside this class, including buffers, shaders and textures
-
-In order to allow for more efficient use of the rendering pipeline, rendering is broken into two parts, loading and drawing
-Loading puts the required data into the buffer, and prepares it for rendering
-Drawing takes the data from the *other* buffer and draws it, the switches the current buffer
-This ensures that no buffer is having data loaded into it when it's used for rendering
 */
-
 class Window
 {
 private:
@@ -38,6 +33,7 @@ private:
 	int char_width, char_height;
 
 public:
+	Window();
 	Window(GLFWwindow* w, const char * solid_color_vert_shader_path, const char * solid_color_frag_shader_path, const char * texture_vert_shader_path, const char * texture_frag_shader_path, const char * font_path);
 	~Window();
 
