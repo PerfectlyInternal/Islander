@@ -90,7 +90,7 @@ GLuint load_dds(const char * imagepath) {
 	/* try to open the file */
 	file = fopen(imagepath, "rb");
 	if (file == NULL) {
-		printf("%s could not be opened. Are you in the right directory ? Don't forget to read the FAQ !\n", imagepath); getchar();
+		printf("%s could not be opened.\n", imagepath);
 		return 0;
 	}
 
@@ -117,7 +117,7 @@ GLuint load_dds(const char * imagepath) {
 	bufsize = mipmap_count > 1 ? linear_size * 2 : linear_size;
 	buffer = (unsigned char*)malloc(bufsize * sizeof(unsigned char));
 	fread(buffer, 1, bufsize, file);
-	/* close the file pointer */
+	/* close the file */
 	fclose(file);
 
 	unsigned int components = (fourCC == FOURCC_DXT1) ? 3 : 4;
@@ -163,6 +163,14 @@ GLuint load_dds(const char * imagepath) {
 		if (width < 1) width = 1;
 		if (height < 1) height = 1;
 	}
+
+	// set the interpolation settings
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // use linear interpolation when magnifying the image
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // use mipmaps and linear interpolation when minifying the image
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // repeat image
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glGenerateMipmap(GL_TEXTURE_2D);
 
 	free(buffer);
 

@@ -5,7 +5,7 @@ layout(location = 1) in vec2 vertex_uv;
 
 out vec2 uv;
 
-uniform vec2 screen_dimensions;
+uniform ivec2 screen_dimensions;
 
 void main(){
 

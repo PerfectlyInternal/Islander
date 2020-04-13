@@ -165,7 +165,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			glClearColor(0.75, 0.75, 0.75, 1);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			render_text(window, vertex_buffer, uv_buffer, font, gui_program_id, 32, 32, 32, 32, 64, 64, "Play!");
+			render_text(window, vertex_buffer, uv_buffer, font, gui_program_id, 32, 32, 256, 512, 256, 256, "Play!");
 
 			glfwSwapBuffers(window);
 

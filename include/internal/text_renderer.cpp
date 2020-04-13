@@ -11,29 +11,36 @@ void render_text(GLFWwindow* window, GLuint vertex_buffer, GLuint uv_buffer, GLu
 	std::vector<glm::vec2> verts = std::vector<glm::vec2>();
 	std::vector<glm::vec2> uvs = std::vector<glm::vec2>();
 
+	int pos = 0;
 	for (char& c : text)
 	{
 		// calculate quad corner positions
-		verts.push_back(glm::vec2(x, y));
-		verts.push_back(glm::vec2(x + width, y));
-		verts.push_back(glm::vec2(x, y + height));
+		verts.push_back(glm::vec2(x + pos * width, y + height));
+		verts.push_back(glm::vec2(x + pos * width, y));
+		verts.push_back(glm::vec2(x + + width + pos * width, y + height));
 
-		verts.push_back(glm::vec2(x + width, y + height));
-		verts.push_back(glm::vec2(x + width, y));
-		verts.push_back(glm::vec2(x, y + height));
+		verts.push_back(glm::vec2(x + width + pos * width, y));
+		verts.push_back(glm::vec2(x + width + pos * width, y + height));
+		verts.push_back(glm::vec2(x + pos * width, y));
 
 		// calculate position of the current letter in the font texture
-		int char_x = (c % (tex_width / char_width)) * char_width;
-		int char_y = (c / (tex_width / char_width)) * char_width;
+		float uv_x = (c % 16) / 16.0f;
+		float uv_y = (c / 16) / 16.0f;
 
-		// calculate uv positions for each corner of the quad
-		uvs.push_back(glm::vec2(char_x, tex_height - char_y));
-		uvs.push_back(glm::vec2(char_x + char_width, tex_height - char_y));
-		uvs.push_back(glm::vec2(char_x, tex_height - char_y - char_height));
+		glm::vec2 uv_up_left = glm::vec2(uv_x, uv_y);
+		glm::vec2 uv_up_right = glm::vec2(uv_x + 1.0f / 16.0f, uv_y);
+		glm::vec2 uv_down_right = glm::vec2(uv_x + 1.0f / 16.0f, (uv_y + 1.0f / 16.0f));
+		glm::vec2 uv_down_left = glm::vec2(uv_x, (uv_y + 1.0f / 16.0f));
 
-		uvs.push_back(glm::vec2(char_x + char_width, tex_height - char_y - char_height));
-		uvs.push_back(glm::vec2(char_x + char_width, tex_height - char_y));
-		uvs.push_back(glm::vec2(char_x, tex_height - char_y - char_height));
+		uvs.push_back(uv_up_left);
+		uvs.push_back(uv_down_left);
+		uvs.push_back(uv_up_right);
+
+		uvs.push_back(uv_down_right);
+		uvs.push_back(uv_up_right);
+		uvs.push_back(uv_down_left);
+
+		pos++;
 	}
 
 	glDisable(GL_CULL_FACE);
@@ -43,20 +50,20 @@ void render_text(GLFWwindow* window, GLuint vertex_buffer, GLuint uv_buffer, GLu
 	glUseProgram(shader_id);
 
 	// bind the texture
-	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, font_texture);
+	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(glGetUniformLocation(shader_id, "texture_sampler"), 0);
 
-	float d[2];
-	glfwGetWindowSize(window, (int*)&d[0], (int*)&d[1]);
-	glUniform2fv(glGetUniformLocation(shader_id, "screen_dimensions"), 1, &d[0]);
+	int d[2];
+	glfwGetWindowSize(window, &d[0], &d[1]);
+	glUniform2iv(glGetUniformLocation(shader_id, "screen_dimensions"), 1, &d[0]);
 
 	// put the data in the buffers
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(glm::vec2), &verts[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(glm::vec2), &verts[0], GL_STREAM_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, uv_buffer);
-	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STREAM_DRAW);
 
 	// render the letter
 	glEnableVertexAttribArray(0);
